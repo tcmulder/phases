@@ -2,21 +2,17 @@
 
 Class Workflows {
 
-	private static $initiated = false;
-
 	/**
-	 * Kick off first things.
+	 * Kicks off first things.
 	 */
-	
 	public static function init() {
 		register_activation_hook( WORKFLOWS_PLUGIN_FILE, array( 'Workflows', 'workflows_activation' ) );
 		self::init_hooks();
 	}
 
 	/**
-	 * Attach methods to hooks.
+	 * Attaches methods to hooks.
 	 */
-	
 	public static function init_hooks() {
 		
 		add_action( 'init', array( 'Workflows', 'create_workflows_taxonomy' ) );
@@ -25,6 +21,8 @@ Class Workflows {
 		add_action( 'admin_init', array( 'Workflows', 'workflows_settings_init' ) );
 		add_action( 'restrict_manage_posts', array( 'Workflows', 'posts_filter_dropdown' ) );
 		add_action( 'admin_enqueue_scripts', array( 'Workflows', 'enqueue_scripts' ) );
+		add_action( 'add_meta_boxes', array( 'Workflows', 'workflows_add_meta_box' ) );
+		add_action( 'save_post', array( 'Workflows', 'workflows_save' ) );
 		add_action( 'admin_head', array( 'Workflows', 'apply_admin_styles') );
 		add_action( 'update_option_workflows_settings', array( 'Workflows', 'save_settings' ), 10, 2 );
 
@@ -39,11 +37,9 @@ Class Workflows {
 	}
 
 	/**
-	 * Run on activation
+	 * Runs on activation to set default workflow post types.
 	 */
-	
 	public static function workflows_activation() {
-		// default to enabling workflows for 'page' post types the first time plugin runs
 		$options = get_option( 'workflows_settings' );
 		if ( ! $options ) {
 			update_option( 'workflows_settings', array( 'post_types' => array( 'page' => 'page' ) ) );
@@ -51,7 +47,7 @@ Class Workflows {
 	}
 
 	/**
-	 * Get post types two which workflows should apply
+	 * Gets post types two which workflows should apply.
 	 */
 	public static function get_workflows_post_types() {
 		
@@ -71,10 +67,10 @@ Class Workflows {
 	}
 
 	/**
-	 * Get terms related to workflow stages
+	 * Gets terms related to workflow stages.
 	 *
 	 * @param array $args
-	 * @return void
+	 * @return array
 	 */
 	public static function get_workflow_stages( $args = array() ) {
 
@@ -89,20 +85,47 @@ Class Workflows {
 	}
 
 	/**
-	 * Get metadata for a given stage
+	 * Gets a single stage's data.
 	 *
 	 * @param obj $term
-	 * @return void
+	 * @return mixed
 	 */
-	public static function get_workflow_stage_meta( $term ) {
-		$meta_from_desc = maybe_unserialize( $term->description );
-		$defaults = array( 'color' => '#cccccc' );
-		$meta = wp_parse_args( $meta_from_desc, $defaults );
-		return $meta;
+	public static function get_workflow_stage( $term ) {
+		$stage = false;
+		if ( $term ) {
+			$faux_meta = maybe_unserialize( $term->description );
+			$faux_meta = wp_parse_args( $faux_meta, array( 'color' => '#cccccc' ) );
+			$stage = array( 
+				...$faux_meta,
+				'id'   => $term->term_id,
+				'name' => $term->name,
+				'slug' => $term->slug,
+			); 
+		}
+		return $stage;
 	}
 
 	/**
-	 * Check if a post type has workflows enabled
+	 * Gets currently-applied stage.
+	 *
+	 * @param int $post_id
+	 * @return array
+	 */
+	public static function get_post_stage( $post_id = 0 ) {
+		$stage = array();
+		$terms = wp_get_post_terms( $post_id, 'workflows' );
+		if ( $terms ) {
+			// note that only one stage can be selected at a time
+			$stage = self::get_workflow_stage( $terms[0] );
+		}
+		return $stage;
+	}
+
+	/**
+	 * Checks if a post type has workflows enabled.
+	 *
+	 * @param string $post_type
+	 * @return bool
 	 */
 	public static function has_workflows( $post_type ) {
 		$post_types = self::get_workflows_post_types();
@@ -110,7 +133,7 @@ Class Workflows {
 	}
 
 	/**
-	 * Create taxonomy for workflow stages.
+	 * Creates taxonomy for workflow stages.
 	 */
 	
 	public static function create_workflows_taxonomy() {
@@ -153,7 +176,7 @@ Class Workflows {
 	}
 
 	/**
-	 * Create the settings page for the plugin
+	 * Creates the settings page for the plugin.
 	 */
 
 	// add a menu link inside the Settings menu
@@ -203,7 +226,7 @@ Class Workflows {
 				$terms = self::get_workflow_stages();
 				$stages_html = array();
 				foreach ( $terms as $term ) {
-					$meta = self::get_workflow_stage_meta( $term );
+					$stage = self::get_workflow_stage( $term );
 					$stages_html[] = sprintf(
 						'<div class="workflows__stage">
 							<input name="workflows_settings[stages][%s][id]" value="%s" type="text" />
@@ -213,12 +236,12 @@ Class Workflows {
 							</span>
 							<button class="workflows__remove button-secondary" aria-label="%s" title="%s" type="button">✕</button>
 						</div>',
-						$term->term_id,
-						$term->term_id,
-						$term->term_id,
-						esc_html( $term->name ),
-						$term->term_id,
-						$meta['color'],
+						$stage['id'],
+						$stage['id'],
+						$stage['id'],
+						esc_html( $stage['name'] ),
+						$stage['id'],
+						$stage['color'],
 						__( 'Remove', 'workflows' ),
 						__( 'Remove', 'workflows' )
 					);
@@ -329,7 +352,7 @@ Class Workflows {
 	}
 
 	/**
-	 * Create admin column header
+	 * Creates admin column header.
 	 */
 	public static function column_add($cols) {
 		$cols['workflows'] = sprintf(
@@ -341,7 +364,7 @@ Class Workflows {
 	}
 
 	/**
-	 * Create admin column values
+	 * Creates admin column values.
 	 *
 	 * @param string $column_name
 	 * @param int $id
@@ -349,19 +372,16 @@ Class Workflows {
 	 */
 	public static function column_value( $column_name, $id ) {
 		if ( 'workflows' === $column_name ) {
-			$terms = wp_get_post_terms( $id, 'workflows' );
-			if ( ! empty( $terms ) ) {
-				$terms_html = array_map( function( $term ) use ( $id ) {
-					return sprintf(
-						'<a href="%sedit.php?workflows=%s&post_type=%s" class="workflows-value--%s">%s</a>',
-						get_admin_url(),
-						$term->slug,
-						get_post_type( $id ),
-						$term->slug,
-						$term->name
-					);
-				}, $terms );
-				echo implode( ', ', $terms_html );
+			$stage = self::get_post_stage( $id );
+			if ( ! empty ( $stage ) ) {
+				printf(
+					'<a href="%sedit.php?workflows=%s&post_type=%s" class="workflows-value--%s">%s</a>',
+					get_admin_url(),
+					$stage['slug'],
+					get_post_type( $id ),
+					$stage['slug'],
+					$stage['name']
+				);
 			}
 		}
 	}
@@ -406,7 +426,109 @@ Class Workflows {
 	}
 
 	/**
-	 * Apply CSS styles to admin header
+	 * Adds metaboxes to block editor settings sidebar.
+	 *
+	 * @return void
+	 */
+	public static function workflows_add_meta_box() {
+
+		// if this post type has workflows activated
+		if ( self::has_workflows( get_post_type() ) ) {
+
+			// get the chosen stage (if any)
+			$post_stage = self::get_post_stage( get_the_id() );
+			
+			// set the label
+			$label = sprintf(
+				'%s<span class="workflows-swatch" style="background-color:%s;">%s</span>',
+				__( 'Workflow', 'workflows' ),
+				empty( $post_stage ) ? 'transparent' : $post_stage['color'],
+				empty( $post_stage ) ? '' : $post_stage['name']
+			);
+
+			// generate select box options HTML
+			$terms = self::get_workflow_stages();
+			$has_selected = false;
+			$options = array();
+			if ( ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$stage = self::get_workflow_stage( $term );
+					$selected = '';
+					if ( $post_stage['id'] ?? '' === $stage['id'] ) {
+						$selected = ' selected';
+						$has_selected = true;
+					}
+					$options[] = sprintf(
+						'<option value="%s" data-color="%s"%s>%s</option>',
+						$stage['id'],
+						$stage['color'],
+						$selected,
+						$stage['name']
+					);
+				}
+			}
+			array_unshift( $options, sprintf(
+				'<option value="0" data-color=""%s>%s</option>',
+				$has_selected ? '' : ' selected',
+				__( 'No Stage Selected', 'workflows' )
+			) );
+
+			// create the meta box
+			add_meta_box(
+				'workflows_options',
+				$label,
+				function() use ( $options ) {
+					wp_nonce_field( 'workflows_meta_box', 'workflows_meta_box_nonce' );
+					printf( '<select class="workflows-stage-select" name="workflows_stage_id">%s</select>', implode( "\n", $options ) );
+					printf(
+						'<a href="%s" class="workflows-manage-link">%s</a>',
+						esc_url( get_admin_url( null, 'options-general.php?page=workflows_admin' ) ),
+						__( 'Manage Stages', 'workflows' )
+					);
+				},
+				self::get_workflows_post_types(),
+				'side'
+			);
+
+		}
+
+	}
+
+	/**
+     * Saves stage data when a post is saved
+     *
+     * @param int $post_id ID of the post e.g. '1'
+     *
+     * @return void
+     */
+    public static function workflows_save( $post_id = 0 ) {
+        
+		// bail if our nonce isn't right
+        if ( ! isset( $_POST['workflows_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['workflows_meta_box_nonce'], 'workflows_meta_box' ) ) {
+            return;
+        }
+
+        // bail if autosaving
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+            return;
+        }
+
+        // bail if this user can't edit this post tpe
+        $type = sanitize_text_field( $_POST['post_type'] ) === 'page' ? 'page' : 'post';
+        if ( ! current_user_can( 'edit_' . $type, $post_id ) ) {
+            return;
+        }
+
+        // sanitize the data
+        $new_stage_id = (int) $_POST['workflows_stage_id'];
+
+        // swap out the post's stage term
+		wp_set_object_terms( $post_id, array( $new_stage_id ), 'workflows', false );
+
+    }
+
+	/**
+	 * Applies CSS styles to admin header
 	 *
 	 * @return void
 	 */
@@ -414,45 +536,47 @@ Class Workflows {
 		
 		// load scripts for post type lists
 		$screen = get_current_screen();
-		if ( 'edit' === $screen->base ) {
-			$post_types = self::get_workflows_post_types();
-			if ( in_array( $screen->post_type, $post_types ) ) {
-
-				// load the stylesheet
-				wp_enqueue_style( 'workflows-post-list-styles', WORKFLOWS_PLUGIN_URI . 'assets/workflows-post-list.css', null, WORKFLOWS_VERSION, 'screen' );
-				
-				// set the colors for each stage
-				$terms = self::get_workflow_stages();
-				$styles = array();
-				foreach( $terms as $term ) {
-					$meta = self::get_workflow_stage_meta( $term );
-					$styles[] = sprintf(
-						'.striped tr:has(.workflows-value--%s){background-color:%s;--workflows-color:%s;}',
-						$term->slug,
-						$meta['color'],
-						$meta['color']
-					);
-				}
-				if ( ! empty( $styles ) ) {
-					printf( '<style id="workflows-admin-styles">%s</style>', implode( "\n", $styles ) );
-				}
+		if ( 'edit' === $screen->base && in_array( $screen->post_type, self::get_workflows_post_types() ) ) {
+			// load the stylesheet
+			wp_enqueue_style( 'workflows-post-list-styles', WORKFLOWS_PLUGIN_URI . 'assets/workflows-post-list.css', null, WORKFLOWS_VERSION, 'screen' );
+			
+			// set the colors for each stage
+			$terms = self::get_workflow_stages();
+			$styles = array();
+			foreach( $terms as $term ) {
+				$stage = self::get_workflow_stage( $term );
+				$styles[] = sprintf(
+					'.striped tr:has(.workflows-value--%s){background-color:%s;--workflows-color:%s;}',
+					$stage['slug'],
+					$stage['color'],
+					$stage['color']
+				);
+			}
+			if ( ! empty( $styles ) ) {
+				printf( '<style id="workflows-admin-styles">%s</style>', implode( "\n", $styles ) );
 			}
 		}
 	}
 
 	/**
-	 * Enqueue scripts and styles
+	 * Enqueues scripts and styles.
 	 *
 	 * @param string $hook_suffix
 	 * @return void
 	 */
 	public static function enqueue_scripts( $hook_suffix ) {
 		
-		// load scripts for plugin settings page
-		if ( "settings_page_workflows_admin" === $hook_suffix ) {
-			wp_enqueue_style( 'wp-color-picker' );
+		// load scripts for plugin settings screen
+		if ( 'settings_page_workflows_admin' === $hook_suffix ) {
+			wp_enqueue_style( 'workflows-settings-styles', WORKFLOWS_PLUGIN_URI . 'assets/workflows-settings.css', array( 'wp-color-picker' ), WORKFLOWS_VERSION, 'screen' );
 			wp_enqueue_script( 'workflows-settings-scripts', WORKFLOWS_PLUGIN_URI . 'assets/workflows-settings.js', array( 'jquery', 'wp-color-picker' ), WORKFLOWS_VERSION, true );
-			wp_enqueue_style( 'workflows-settings-styles', WORKFLOWS_PLUGIN_URI . 'assets/workflows-settings.css', null, WORKFLOWS_VERSION, 'screen' );
+		}
+
+		// load scripts for block editor screen
+		$screen = get_current_screen();
+		if ( 'post' === $screen->base && in_array( $screen->post_type, self::get_workflows_post_types() ) ) {
+			wp_enqueue_style( 'workflows-block-editor-styles', WORKFLOWS_PLUGIN_URI . 'assets/workflows-block-editor.css', null, WORKFLOWS_VERSION, 'screen' );
+			wp_enqueue_script( 'workflows-block-editor-scripts', WORKFLOWS_PLUGIN_URI . 'assets/workflows-block-editor.js', array( 'jquery' ), WORKFLOWS_VERSION, true );
 		}
 
 	}

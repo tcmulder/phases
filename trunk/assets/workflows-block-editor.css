@@ -1,0 +1,21 @@
+/**
+* Workflows plugin block editor styling
+*/
+.workflows-swatch {
+	overflow: hidden;
+	display: inline-block;
+	margin-left: 10px;
+	padding: 0 5px;
+	border-radius: 99px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.workflows-stage-select {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+.workflows-manage-link {
+	display: block;
+	padding-top: 10px;
+}
