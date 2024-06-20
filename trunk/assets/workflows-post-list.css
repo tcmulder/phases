@@ -1,0 +1,10 @@
+/**
+* Workflows plugin post list styling
+*/
+.striped tr:nth-child(odd):has([class^="workflows-value"]) {
+	background-color: color-mix(
+		in srgb,
+		var(--workflows-color) 98%,
+		#000
+	) !important;
+}

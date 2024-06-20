@@ -1,0 +1,27 @@
+/**
+* Workflows plugin settings page styling
+*/
+
+.workflows h2 {
+	margin-top: 75px;
+}
+.workflows__stage {
+	position: relative;
+	display: flex;
+	align-items: center;
+	column-gap: 5px;
+	margin-bottom: 5px;
+	margin-right: 5px;
+}
+.workflows__color {
+	position: relative;
+}
+.workflows__color .wp-picker-container .wp-color-result.button {
+	margin: 0;
+}
+.workflows__color .wp-picker-container .wp-picker-holder {
+	position: absolute;
+	right: 0;
+	top: 100%;
+	z-index: 999;
+}
