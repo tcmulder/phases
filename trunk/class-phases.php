@@ -507,7 +507,7 @@ Class Phases {
 			array_unshift( $options, sprintf(
 				'<option value="0" data-color=""%s>%s</option>',
 				$has_selected ? '' : ' selected',
-				__( 'No Phase Selected', 'phases' )
+				__( 'None', 'phases' )
 			) );
 
 			// create the meta box
