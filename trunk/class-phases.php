@@ -16,6 +16,7 @@ Class Phases {
 	public static function init_hooks() {
 		
 		add_action( 'init', array( 'Phases', 'create_phases_taxonomy' ) );
+		add_action( 'init', array( 'Phases', 'create_default_phases_terms' ) );
 		add_action( 'admin_menu', array( 'Phases', 'add_admin_menu' ) );
 		add_action( 'admin_init', array( 'Phases', 'phases_settings_init' ) );
 		add_action( 'restrict_manage_posts', array( 'Phases', 'posts_filter_dropdown' ) );
@@ -44,7 +45,7 @@ Class Phases {
 			return;
 		}
 		// show ui on pages by default
-		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ) ) );
+		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ), 'activation' => true, 'debug' => 'on' ) );
 	}
 
 	/**
@@ -176,6 +177,40 @@ Class Phases {
 	}
 
 	/**
+	 * Creates initial terms (if the plugin is being initialized for the first time)
+	 */
+	public static function create_default_phases_terms() {
+		
+		// if this is the initial activation
+		$options = get_option( 'phases_settings' );
+		if ( $options['activation'] ?? false ) {
+			// set up to do / doing / done default terms
+			wp_insert_term( 'Done', 'phases', array(
+				'name' => 'Done',
+				'description' => serialize( array(
+					'color' => '#d9ead3'
+				) )
+			) );
+			wp_insert_term( 'Doing', 'phases', array(
+				'name' => 'Doing',
+				'description' => serialize( array(
+					'color' => '#fff3cc'
+				) )
+			) );
+			wp_insert_term( 'To Do', 'phases', array(
+				'name' => 'To Do',
+				'description' => serialize( array(
+					'color' => '#f5cbcc'
+				) )
+			) );
+			// identify as no longer being initial activation
+			unset( $options['activation'] );
+			update_option( 'phases_settings', $options );
+		}
+
+	}
+
+	/**
 	 * Creates the settings page for the plugin.
 	 */
 
@@ -303,11 +338,13 @@ Class Phases {
 			__( 'Enable Debugging', 'phases' ),
 			function() {
 				$options = get_option( 'phases_settings' );
+				$debug_enabled = $options['debug'] ?? 'off' === 'on';
 				printf(
-					'<fieldset><label><input type="checkbox" name="%s" value="on"%s /> %s</label><fieldset>',
+					'<fieldset><label><input type="checkbox" name="%s" value="on"%s /> %s</label><fieldset>%s',
 					'phases_settings[debug]',
-					( $options['debug'] ?? 'off' === 'on' ? ' checked' : '' ),
-					__( 'Enable Debug Mode', 'phases' )
+					( $debug_enabled ? ' checked' : '' ),
+					__( 'Enable Debug Mode', 'phases' ),
+					( $debug_enabled ? '<p>' . __( 'Plugin settings for debugging', 'phases' ) . ':</p><pre>' . print_r( $options, 1 ) . '</pre>' : '' )
 				);
 			},
 			'pluginPage'
