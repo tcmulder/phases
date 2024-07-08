@@ -5,7 +5,7 @@
 .phases h2 {
 	margin-top: 75px;
 }
-.phases__stage {
+.phases__phase {
 	position: relative;
 	display: flex;
 	align-items: center;

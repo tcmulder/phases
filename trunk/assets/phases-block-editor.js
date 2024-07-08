@@ -6,7 +6,7 @@ jQuery(document).ready(function($){
     // update phase status dynamically
     const $wrap = $('#phases_options');
     if ( $wrap.length ) {
-        const $select = $wrap.find('.phases-stage-select');
+        const $select = $wrap.find('.phases-phase-select');
         const $swatch = $wrap.find('.phases-swatch');
         $select.on('change', function() {
             const $selected = $select.find('option:selected');

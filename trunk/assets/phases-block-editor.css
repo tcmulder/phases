@@ -10,7 +10,7 @@
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
-.phases-stage-select {
+.phases-phase-select {
 	display: block;
 	width: 100%;
 	box-sizing: border-box;

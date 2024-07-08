@@ -17,20 +17,20 @@ jQuery(document).ready(function($){
     // initiate color picker
     $phases.find('.phases-color').wpColorPicker({ palettes });
 
-    // remove stages on click of removal button
+    // remove phases on click of removal button
     $phases.on('click', '.phases__remove', function(){
         $(this).parent().remove();
     });
 
-    // add stages on click of addition button
+    // add phases on click of addition button
     $phases.on('click', '.phases__add', function(){
-        const id = `new-stage-${Date.now()}`;
+        const id = `new-phase-${Date.now()}`;
         $(this).parent().prepend(`
-            <div class="phases__stage">
-                <input name="phases_settings[stages][${id}][id]" value="${id}" type="text" />
-                <input name="phases_settings[stages][${id}][name]" value="" type="text" />
+            <div class="phases__phase">
+                <input name="phases_settings[phases][${id}][id]" value="${id}" type="text" />
+                <input name="phases_settings[phases][${id}][name]" value="" type="text" />
                 <span class="phases__color">
-                    <input name="phases_settings[stages][${id}][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
+                    <input name="phases_settings[phases][${id}][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
                 </span>
                 <button class="phases__remove button-secondary" aria-label="Remove" title="Remove" type="button">✕</button>
             </div>

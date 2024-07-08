@@ -69,12 +69,12 @@ Class Phases {
 	}
 
 	/**
-	 * Gets terms related to phase stages.
+	 * Gets terms related to phase phases.
 	 *
 	 * @param array $args
 	 * @return array
 	 */
-	public static function get_phase_stages( $args = array() ) {
+	public static function get_phase_phases( $args = array() ) {
 
 		$defaults = array( 
 			'taxonomy' => 'phases',
@@ -87,40 +87,40 @@ Class Phases {
 	}
 
 	/**
-	 * Gets a single stage's data.
+	 * Gets a single phase's data.
 	 *
 	 * @param obj $term
 	 * @return mixed
 	 */
-	public static function get_phase_stage( $term ) {
-		$stage = false;
+	public static function get_phase_phase( $term ) {
+		$phase = false;
 		if ( $term ) {
 			$faux_meta = maybe_unserialize( $term->description );
 			$faux_meta = wp_parse_args( $faux_meta, array( 'color' => '#cccccc' ) );
-			$stage = array( 
+			$phase = array( 
 				...$faux_meta,
 				'id'   => $term->term_id,
 				'name' => $term->name,
 				'slug' => $term->slug,
 			); 
 		}
-		return $stage;
+		return $phase;
 	}
 
 	/**
-	 * Gets currently-applied stage.
+	 * Gets currently-applied phase.
 	 *
 	 * @param int $post_id
 	 * @return array
 	 */
-	public static function get_post_stage( $post_id = 0 ) {
-		$stage = array();
+	public static function get_post_phase( $post_id = 0 ) {
+		$phase = array();
 		$terms = wp_get_post_terms( $post_id, 'phases' );
 		if ( $terms ) {
-			// note that only one stage can be selected at a time
-			$stage = self::get_phase_stage( $terms[0] );
+			// note that only one phase can be selected at a time
+			$phase = self::get_phase_phase( $terms[0] );
 		}
-		return $stage;
+		return $phase;
 	}
 
 	/**
@@ -135,7 +135,7 @@ Class Phases {
 	}
 
 	/**
-	 * Creates taxonomy for phase stages.
+	 * Creates taxonomy for phase phases.
 	 */
 	public static function create_phases_taxonomy() {
 
@@ -245,50 +245,50 @@ Class Phases {
 		// register the settings option storage location
 		register_setting( 'pluginPage', 'phases_settings' );
 
-		// enable addition/removal of phase stages
+		// enable addition/removal of phase phases
 		add_settings_section(
-			'phases_admin_stages_section',
-			__( 'Phase Stages', 'phases' ),
+			'phases_admin_phases_section',
+			__( 'Phase Phases', 'phases' ),
 			function() {
-				printf( '<p>%s</p>', __( 'Add or remove stages in your phase.', 'phases' ) );
+				printf( '<p>%s</p>', __( 'Add or remove phases in your phase.', 'phases' ) );
 			},
 			'pluginPage'
 		);
 		add_settings_field(
-			'phases_admin_stages_fields',
-			__( 'Manage Stages:', 'phases' ),
+			'phases_admin_phases_fields',
+			__( 'Manage Phases:', 'phases' ),
 			function() {
-				$terms = self::get_phase_stages();
-				$stages_html = array();
+				$terms = self::get_phase_phases();
+				$phases_html = array();
 				foreach ( $terms as $term ) {
-					$stage = self::get_phase_stage( $term );
-					$stages_html[] = sprintf(
-						'<div class="phases__stage">
-							<input name="phases_settings[stages][%s][id]" value="%s" type="text" />
-							<input name="phases_settings[stages][%s][name]" value="%s" type="text" />
+					$phase = self::get_phase_phase( $term );
+					$phases_html[] = sprintf(
+						'<div class="phases__phase">
+							<input name="phases_settings[phases][%s][id]" value="%s" type="text" />
+							<input name="phases_settings[phases][%s][name]" value="%s" type="text" />
 							<span class="phases__color">
-								<input name="phases_settings[stages][%s][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
+								<input name="phases_settings[phases][%s][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
 							</span>
 							<button class="phases__remove button-secondary" aria-label="%s" title="%s" type="button">✕</button>
 						</div>',
-						$stage['id'],
-						$stage['id'],
-						$stage['id'],
-						esc_html( $stage['name'] ),
-						$stage['id'],
-						$stage['color'],
+						$phase['id'],
+						$phase['id'],
+						$phase['id'],
+						esc_html( $phase['name'] ),
+						$phase['id'],
+						$phase['color'],
 						__( 'Remove', 'phases' ),
 						__( 'Remove', 'phases' )
 					);
 				}
 				printf(
 					'<fieldset>%s <button class="phases__add button-secondary" type="button">%s</button></fieldset>',
-					implode( "\n", $stages_html ),
-					__( 'Add Phase Stage', 'phases' )
+					implode( "\n", $phases_html ),
+					__( 'Add Phase Phase', 'phases' )
 				);
 			},
 			'pluginPage',
-			'phases_admin_stages_section'
+			'phases_admin_phases_section'
 		);
 
 		// create selection of post types where layouts will appear
@@ -358,9 +358,9 @@ Class Phases {
 		// detach the hook so it doesn't run twice
 		remove_action( 'update_option_phases_settings', array( 'Phases', 'save_settings' ), 10, 2 );
 
-		// extract stages information and save as taxonomy rather than option field
-		$old_term_ids = self::get_phase_stages( array( 'fields' => 'ids' ) );
-		$new_terms = $value['stages'] ?? array();
+		// extract phases information and save as taxonomy rather than option field
+		$old_term_ids = self::get_phase_phases( array( 'fields' => 'ids' ) );
+		$new_terms = $value['phases'] ?? array();
 		foreach( $new_terms as $new_term ) {
 			$new_id = $new_term['id'] ?? 0;
 			$new_name = ( $new_term['name'] ? $new_term['name'] : __( 'Not Defined', 'phases' ) );
@@ -379,9 +379,9 @@ Class Phases {
 				wp_delete_term( $old_term_id, 'phases' );
 			}
 		}
-		unset( $value['stages'] );
+		unset( $value['phases'] );
 
-		// update the settings value sans stages
+		// update the settings value sans phases
 		update_option( 'phases_settings', array( ...$value ) );
 
 		// reattach the hook
@@ -394,8 +394,8 @@ Class Phases {
 	public static function column_add($cols) {
 		$cols['phases'] = sprintf(
 			'<abbr style="cursor:help;" title="%s">%s</abbr>',
-			__( 'Current Phase Stage', 'phases' ),
-			__( 'Stage', 'phases' )
+			__( 'Current Phase Phase', 'phases' ),
+			__( 'Phase', 'phases' )
 		);
 		return $cols;
 	}
@@ -409,15 +409,15 @@ Class Phases {
 	 */
 	public static function column_value( $column_name, $id ) {
 		if ( 'phases' === $column_name ) {
-			$stage = self::get_post_stage( $id );
-			if ( ! empty ( $stage ) ) {
+			$phase = self::get_post_phase( $id );
+			if ( ! empty ( $phase ) ) {
 				printf(
 					'<a href="%sedit.php?phases=%s&post_type=%s" class="phases-value--%s">%s</a>',
 					get_admin_url(),
-					$stage['slug'],
+					$phase['slug'],
 					get_post_type( $id ),
-					$stage['slug'],
-					$stage['name']
+					$phase['slug'],
+					$phase['name']
 				);
 			}
 		}
@@ -436,7 +436,7 @@ Class Phases {
 
 			$options = array();
 			
-			$terms = self::get_phase_stages();
+			$terms = self::get_phase_phases();
 
 			foreach ( $terms as $term ) {
 				$is_selected = $_GET['phases'] ?? '' === $term->slug ? ' selected' : '';
@@ -451,8 +451,8 @@ Class Phases {
 			if ( $options ) {
 				printf(
 					'<label class="screen-reader-text" for="phases-filter">%s</label><select name="phases"><option value>%s</option>%s</select>',
-					esc_html__( 'Filter by Phase Stage', 'phases' ),
-					__( 'All Stages', 'phases' ),
+					esc_html__( 'Filter by Phase Phase', 'phases' ),
+					__( 'All Phases', 'phases' ),
 					implode( "\n", $options ),
 				);
 			}
@@ -472,42 +472,42 @@ Class Phases {
 		// if this post type has phases activated
 		if ( self::has_phases( get_post_type() ) ) {
 
-			// get the chosen stage (if any)
-			$post_stage = self::get_post_stage( get_the_id() );
+			// get the chosen phase (if any)
+			$post_phase = self::get_post_phase( get_the_id() );
 			
 			// set the label
 			$label = sprintf(
 				'%s<span class="phases-swatch" style="background-color:%s;">%s</span>',
 				__( 'Phase', 'phases' ),
-				empty( $post_stage ) ? 'transparent' : $post_stage['color'],
-				empty( $post_stage ) ? '' : $post_stage['name']
+				empty( $post_phase ) ? 'transparent' : $post_phase['color'],
+				empty( $post_phase ) ? '' : $post_phase['name']
 			);
 
 			// generate select box options HTML
-			$terms = self::get_phase_stages();
+			$terms = self::get_phase_phases();
 			$has_selected = false;
 			$options = array();
 			if ( ! empty( $terms ) ) {
 				foreach ( $terms as $term ) {
-					$stage = self::get_phase_stage( $term );
+					$phase = self::get_phase_phase( $term );
 					$selected = '';
-					if ( $post_stage['id'] ?? '' === $stage['id'] ) {
+					if ( $post_phase['id'] ?? '' === $phase['id'] ) {
 						$selected = ' selected';
 						$has_selected = true;
 					}
 					$options[] = sprintf(
 						'<option value="%s" data-color="%s"%s>%s</option>',
-						$stage['id'],
-						$stage['color'],
+						$phase['id'],
+						$phase['color'],
 						$selected,
-						$stage['name']
+						$phase['name']
 					);
 				}
 			}
 			array_unshift( $options, sprintf(
 				'<option value="0" data-color=""%s>%s</option>',
 				$has_selected ? '' : ' selected',
-				__( 'No Stage Selected', 'phases' )
+				__( 'No Phase Selected', 'phases' )
 			) );
 
 			// create the meta box
@@ -516,11 +516,11 @@ Class Phases {
 				$label,
 				function() use ( $options ) {
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
-					printf( '<select class="phases-stage-select" name="phases_stage_id">%s</select>', implode( "\n", $options ) );
+					printf( '<select class="phases-phase-select" name="phases_phase_id">%s</select>', implode( "\n", $options ) );
 					printf(
 						'<a href="%s" class="phases-manage-link">%s</a>',
 						esc_url( get_admin_url( null, 'options-general.php?page=phases_admin' ) ),
-						__( 'Manage Stages', 'phases' )
+						__( 'Manage Phases', 'phases' )
 					);
 				},
 				self::get_phases_post_types(),
@@ -532,7 +532,7 @@ Class Phases {
 	}
 
 	/**
-     * Saves stage data when a post is saved
+     * Saves phase data when a post is saved
      *
      * @param int $post_id ID of the post e.g. '1'
      *
@@ -557,10 +557,10 @@ Class Phases {
         }
 
         // sanitize the data
-        $new_stage_id = (int) $_POST['phases_stage_id'];
+        $new_phase_id = (int) $_POST['phases_phase_id'];
 
-        // swap out the post's stage term
-		wp_set_object_terms( $post_id, array( $new_stage_id ), 'phases', false );
+        // swap out the post's phase term
+		wp_set_object_terms( $post_id, array( $new_phase_id ), 'phases', false );
 
     }
 
@@ -577,16 +577,16 @@ Class Phases {
 			// load the stylesheet
 			wp_enqueue_style( 'phases-post-list-styles', PHASES_PLUGIN_URI . 'assets/phases-post-list.css', null, PHASES_VERSION, 'screen' );
 			
-			// set the colors for each stage
-			$terms = self::get_phase_stages();
+			// set the colors for each phase
+			$terms = self::get_phase_phases();
 			$styles = array();
 			foreach( $terms as $term ) {
-				$stage = self::get_phase_stage( $term );
+				$phase = self::get_phase_phase( $term );
 				$styles[] = sprintf(
 					'.striped tr:has(.phases-value--%s){background-color:%s;--phases-color:%s;}',
-					$stage['slug'],
-					$stage['color'],
-					$stage['color']
+					$phase['slug'],
+					$phase['color'],
+					$phase['color']
 				);
 			}
 			if ( ! empty( $styles ) ) {
