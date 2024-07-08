@@ -1,7 +1,7 @@
 /**
-* Workflows plugin block editor styling
+* Phases plugin block editor styling
 */
-.workflows-swatch {
+.phases-swatch {
 	overflow: hidden;
 	display: inline-block;
 	margin-left: 10px;
@@ -10,12 +10,12 @@
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
-.workflows-stage-select {
+.phases-stage-select {
 	display: block;
 	width: 100%;
 	box-sizing: border-box;
 }
-.workflows-manage-link {
+.phases-manage-link {
 	display: block;
 	padding-top: 10px;
 }

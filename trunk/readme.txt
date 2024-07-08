@@ -51,11 +51,11 @@ For example, you could display the "Some Slug" image from the default "General" 
 
 = Using PHP Functions and Advanced Features =
 
-You can [visit the documentation](http://www.thinkaquamarine.com/development/workflows-plugin/) for more information on using PHP functions, along with code examples and details on more advanced features.
+You can [visit the documentation](http://www.thinkaquamarine.com/development/phases-plugin/) for more information on using PHP functions, along with code examples and details on more advanced features.
 
 == Installation ==
 
-1. Upload "workflows" to the "/wp-content/plugins/" directory.
+1. Upload "phases" to the "/wp-content/plugins/" directory.
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==

@@ -9,7 +9,7 @@ function debug() {
 		'post_type' => array( 'post', 'page' ),
 		'tax_query' => array(
 			array(
-				'taxonomy' => 'workflows',
+				'taxonomy' => 'phases',
 				'field' => 'slug',
 				'terms' => 'test-1',
 
@@ -22,7 +22,7 @@ function debug() {
 	}, $query);$D=printf("<PRE>%s</PRE>",$D?print_r($D,1):'✋');
 
 	$terms = get_terms( array( 
-		'taxonomy' => 'workflows',
+		'taxonomy' => 'phases',
 		'hide_empty' => 0,
 		'fields' => 'ids',
 	) );

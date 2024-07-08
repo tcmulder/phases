@@ -1,13 +1,13 @@
 /**
- * Workflows plugin block editor scripts
+ * Phases plugin block editor scripts
  */
 jQuery(document).ready(function($){
 
-    // update workflow status dynamically
-    const $wrap = $('#workflows_options');
+    // update phase status dynamically
+    const $wrap = $('#phases_options');
     if ( $wrap.length ) {
-        const $select = $wrap.find('.workflows-stage-select');
-        const $swatch = $wrap.find('.workflows-swatch');
+        const $select = $wrap.find('.phases-stage-select');
+        const $swatch = $wrap.find('.phases-swatch');
         $select.on('change', function() {
             const $selected = $select.find('option:selected');
             if ( $selected.data('color') ) {

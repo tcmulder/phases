@@ -1,0 +1,10 @@
+/**
+* Phases plugin post list styling
+*/
+.striped tr:nth-child(odd):has([class^="phases-value"]) {
+	background-color: color-mix(
+		in srgb,
+		var(--phases-color) 98%,
+		#000
+	) !important;
+}
