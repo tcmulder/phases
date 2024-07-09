@@ -23,8 +23,10 @@ Class Phases {
 		add_action( 'admin_enqueue_scripts', array( 'Phases', 'enqueue_scripts' ) );
 		add_action( 'add_meta_boxes', array( 'Phases', 'phases_add_meta_box' ) );
 		add_action( 'save_post', array( 'Phases', 'phases_save' ) );
-		add_action( 'admin_head', array( 'Phases', 'apply_admin_styles') );
 		add_action( 'update_option_phases_settings', array( 'Phases', 'save_settings' ), 10, 2 );
+		add_action( 'bulk_edit_custom_box', array( 'Phases', 'quick_and_bulk_field' ) );
+        add_action( 'quick_edit_custom_box', array( 'Phases', 'quick_and_bulk_field' ) );
+		add_filter( 'quick_edit_show_taxonomy', array( 'Phases', 'quick_and_bulk_mods' ), 10, 3 );
 
 		$phase_post_types = self::get_phases_post_types();
 		if ( ! empty( $phase_post_types ) ) {
@@ -45,7 +47,7 @@ Class Phases {
 			return;
 		}
 		// show ui on pages by default
-		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ), 'activation' => true, 'debug' => 'on' ) );
+		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ), 'activation' => true ) );
 	}
 
 	/**
@@ -264,7 +266,7 @@ Class Phases {
 					$phase = self::get_phase_phase( $term );
 					$phases_html[] = sprintf(
 						'<div class="phases__phase">
-							<input name="phases_settings[phases][%s][id]" value="%s" type="text" />
+							<input name="phases_settings[phases][%s][id]" value="%s" type="hidden" />
 							<input name="phases_settings[phases][%s][name]" value="%s" type="text" />
 							<span class="phases__color">
 								<input name="phases_settings[phases][%s][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
@@ -284,7 +286,7 @@ Class Phases {
 				printf(
 					'<fieldset>%s <button class="phases__add button-secondary" type="button">%s</button></fieldset>',
 					implode( "\n", $phases_html ),
-					__( 'Add Phase Phase', 'phases' )
+					__( 'Add a Phase', 'phases' )
 				);
 			},
 			'pluginPage',
@@ -344,7 +346,7 @@ Class Phases {
 					'phases_settings[debug]',
 					( $debug_enabled ? ' checked' : '' ),
 					__( 'Enable Debug Mode', 'phases' ),
-					( $debug_enabled ? '<p>' . __( 'Plugin settings for debugging', 'phases' ) . ':</p><pre>' . print_r( $options, 1 ) . '</pre>' : '' )
+					( $debug_enabled ? '<code style="white-space:pre;display:block">' . print_r( $options, 1 ) . '</code>' : '' )
 				);
 			},
 			'pluginPage'
@@ -424,7 +426,7 @@ Class Phases {
 	}
 
 	/**
-	 * Adds a dropdown that allows filtering on the posts SEO Quality.
+	 * Adds a dropdown that allows filtering on the posts current phase.
 	 *
 	 * @return void
 	 */
@@ -491,7 +493,7 @@ Class Phases {
 				foreach ( $terms as $term ) {
 					$phase = self::get_phase_phase( $term );
 					$selected = '';
-					if ( $post_phase['id'] ?? '' === $phase['id'] ) {
+					if ( isset( $post_phase['id'] ) && $post_phase['id'] === $phase['id'] ) {
 						$selected = ' selected';
 						$has_selected = true;
 					}
@@ -539,9 +541,13 @@ Class Phases {
      * @return void
      */
     public static function phases_save( $post_id = 0 ) {
+
+		$post_nonce = wp_verify_nonce( $_POST['phases_meta_box_nonce'] ?? '', 'phases_meta_box' ); // post save
+		$quick_nonce = wp_verify_nonce( $_POST[ '_inline_edit' ] ?? '', 'inlineeditnonce' ); // quick save
+		$bulk_nonce = wp_verify_nonce( $_GET[ '_wpnonce' ] ?? '', 'bulk-posts' ); // bulk quick save
         
 		// bail if our nonce isn't right
-        if ( ! isset( $_POST['phases_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['phases_meta_box_nonce'], 'phases_meta_box' ) ) {
+        if ( ! $post_nonce && ! $quick_nonce && ! $bulk_nonce ) {
             return;
         }
 
@@ -551,29 +557,62 @@ Class Phases {
         }
 
         // bail if this user can't edit this post tpe
-        $type = sanitize_text_field( $_POST['post_type'] ) === 'page' ? 'page' : 'post';
-        if ( ! current_user_can( 'edit_' . $type, $post_id ) ) {
+		$post_type = $bulk_nonce ? $_GET['post_type'] : $_POST['post_type'];
+        if ( ! current_user_can( 'edit_' . $post_type, $post_id ) ) {
             return;
         }
 
-        // sanitize the data
-        $new_phase_id = (int) $_POST['phases_phase_id'];
+        // get data and sanitize it
+		$new_phase_id = ( $bulk_nonce ? $_GET['phases_phase_id'] ?? null : $_POST['phases_phase_id'] ?? null );
 
-        // swap out the post's phase term
-		wp_set_object_terms( $post_id, array( $new_phase_id ), 'phases', false );
+        // swap out the post's phase term (unless we're to leave things unchanged)
+		if ( null !== $new_phase_id ) {
+			wp_set_object_terms( $post_id, array( (int) $new_phase_id ), 'phases', false );
+		}
 
     }
 
+	public static function quick_and_bulk_save( $post_id ){
+
+		$is_quick = wp_verify_nonce( $_POST[ '_inline_edit' ] ?? '', 'inlineeditnonce' );
+		$is_bulk = wp_verify_nonce( $_GET[ '_wpnonce' ] ?? '', 'bulk-posts' );
+
+		if ( ! $is_quick && ! $is_bulk ) {
+			return;
+		}
+
+
+
+	}
+
 	/**
-	 * Applies CSS styles to admin header
+	 * Enqueues scripts and styles.
 	 *
+	 * @param string $hook_suffix
 	 * @return void
 	 */
-	public static function apply_admin_styles() {
-		
-		// load scripts for post type lists
+	public static function enqueue_scripts( $hook_suffix ) {
+
 		$screen = get_current_screen();
-		if ( 'edit' === $screen->base && in_array( $screen->post_type, self::get_phases_post_types() ) ) {
+		$post_types = self::get_phases_post_types();
+
+		// load scripts for block editor screen
+		if ( 'post' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
+			wp_enqueue_style( 'phases-block-editor-styles', PHASES_PLUGIN_URI . 'assets/phases-block-editor.css', null, PHASES_VERSION, 'screen' );
+			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array( 'jquery' ), PHASES_VERSION, true );
+		}
+
+		// load scripts for page lists
+		
+		
+		// load scripts for plugin settings screen
+		if ( 'settings_page_phases_admin' === $hook_suffix ) {
+			wp_enqueue_style( 'phases-settings-styles', PHASES_PLUGIN_URI . 'assets/phases-settings.css', array( 'wp-color-picker' ), PHASES_VERSION, 'screen' );
+			wp_enqueue_script( 'phases-settings-scripts', PHASES_PLUGIN_URI . 'assets/phases-settings.js', array( 'jquery', 'wp-color-picker' ), PHASES_VERSION, true );
+		}
+
+		// load scripts for post type lists
+		if ( 'edit' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
 			// load the stylesheet
 			wp_enqueue_style( 'phases-post-list-styles', PHASES_PLUGIN_URI . 'assets/phases-post-list.css', null, PHASES_VERSION, 'screen' );
 			
@@ -593,29 +632,56 @@ Class Phases {
 				printf( '<style id="phases-admin-styles">%s</style>', implode( "\n", $styles ) );
 			}
 		}
+
 	}
 
 	/**
-	 * Enqueues scripts and styles.
-	 *
-	 * @param string $hook_suffix
-	 * @return void
-	 */
-	public static function enqueue_scripts( $hook_suffix ) {
-		
-		// load scripts for plugin settings screen
-		if ( 'settings_page_phases_admin' === $hook_suffix ) {
-			wp_enqueue_style( 'phases-settings-styles', PHASES_PLUGIN_URI . 'assets/phases-settings.css', array( 'wp-color-picker' ), PHASES_VERSION, 'screen' );
-			wp_enqueue_script( 'phases-settings-scripts', PHASES_PLUGIN_URI . 'assets/phases-settings.js', array( 'jquery', 'wp-color-picker' ), PHASES_VERSION, true );
+     * Custom quick edit box.
+     *
+     * @param string $column_name Custom column name
+     *
+     */
+    public static function quick_and_bulk_field( $column_name ) {
+        if ($column_name !== 'phases') {
+            return;
+        }
+		$phases = self::get_phase_phases();
+		if ( ! empty( $phases ) ) {
+			$options = sprintf(
+				'<option disabled selected>%s</option><option value="">%s</option>',
+				__( '(Unchanged)', 'phases' ),
+				__( 'None', 'phases' )
+			);
+			foreach ( $phases as $phase ) {
+				$options .= sprintf( '<option value="%s">%s</option>', $phase->term_id, $phase->name );
+			}
+			printf(
+				'<fieldset class="inline-edit-col-right phases-quickedit">
+					<div class="inline-edit-col">
+						<div class="inline-edit-group">
+							<label class="inline-edit-status alignleft">
+								<span class="title">%s</span>
+								<select type="text" name="phases_phase_id">%s</select>
+							</label>
+						</div>
+					</div>
+				</fieldset>',
+				__( 'Phase', 'phases' ),
+				$options,
+			);
 		}
+    }
 
-		// load scripts for block editor screen
-		$screen = get_current_screen();
-		if ( 'post' === $screen->base && in_array( $screen->post_type, self::get_phases_post_types() ) ) {
-			wp_enqueue_style( 'phases-block-editor-styles', PHASES_PLUGIN_URI . 'assets/phases-block-editor.css', null, PHASES_VERSION, 'screen' );
-			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array( 'jquery' ), PHASES_VERSION, true );
+	
+	public static function quick_and_bulk_mods( $show, $taxonomy_name, $view ) {
+
+		if ( 'phases' === $taxonomy_name ) {
+			return false;
 		}
-
+	
+		return $show;
+	
 	}
+
 
 }
