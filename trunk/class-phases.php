@@ -513,9 +513,9 @@ Class Phases {
 			
 			// set the label
 			$label = sprintf(
-				'%s<span class="phases-swatch" style="background-color:%s;">%s</span>',
-				__( 'Phase', 'phases' ),
+				'<span class="phases-swatch" style="background-color:%s;">%s: %s</span>',
 				empty( $post_phase ) ? 'transparent' : $post_phase['color'],
+				__( 'Phase', 'phases' ),
 				empty( $post_phase ) ? '' : $post_phase['name']
 			);
 
@@ -554,22 +554,26 @@ Class Phases {
 					$settings = get_option( 'phases_settings' );
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
 					printf(
-						'<select class="phases-phase-select" name="phases_phase_id">%s</select>',
-						implode( "\n", $options )
+						'<p>%s:</p>',
+						__( 'Set this post as', 'phases' )
 					);
 					printf(
-						'<a href="%s" class="phases-manage-link">%s</a>',
-						esc_url( get_admin_url( null, 'options-general.php?page=phases_admin' ) ),
-						__( 'Manage Phases', 'phases' )
+						'<select class="phases-phase-select" name="phases_phase_id">%s</select>',
+						implode( "\n", $options )
 					);
 					if ( $settings['notes'] ?? 'off' === 'on' ) {
 						$meta = get_post_meta( get_the_id(), 'phases_note', true );
 						printf(
-							'<label class="phases-notes">%s<br /><textarea  name="phases_phase_note" rows="7">%s</textarea></label>',
+							'<label class="phases-notes"><span>%s:</span><textarea  name="phases_phase_note" rows="7">%s</textarea></label>',
 							__( 'Notes', 'phases' ),
 							sanitize_textarea_field( $meta )
 						);
 					}
+					printf(
+						'<a href="%s" class="phases-manage-link">%s</a>',
+						esc_url( get_admin_url( null, 'options-general.php?page=phases_admin' ) ),
+						__( 'Manage phases', 'phases' )
+					);
 				},
 				self::get_phases_post_types(),
 				'side'

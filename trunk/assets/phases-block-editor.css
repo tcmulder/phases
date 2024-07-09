@@ -4,7 +4,7 @@
 .phases-swatch {
 	overflow: hidden;
 	display: inline-block;
-	margin-left: 10px;
+	margin-left: -5px;
 	padding: 0 5px;
 	border-radius: 99px;
 	white-space: nowrap;
@@ -19,9 +19,10 @@
 	display: block;
 	padding-top: 10px;
 }
-.phases-notes {
+.phases-notes span {
 	display: block;
-	margin-top: 15px;
+	margin-top: 20px;
+	margin-bottom: 10px;
 }
 .phases-notes textarea {
 	width: 100%;
