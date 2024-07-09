@@ -59,12 +59,12 @@ Class Phases {
 		$post_types_array = array();
 
 		// get the phase post type settings and loop through them
-		$options = get_option( 'phases_settings' );
-		if ( $options && ! empty( $options['post_types'] ?? array() ) ) {
+		$settings = get_option( 'phases_settings' );
+		if ( $settings && ! empty( $settings['post_types'] ?? array() ) ) {
 			// create an indexical array of the post types
 			$post_types_array = array_map( function( $post_type ) {
 				return $post_type;
-			}, $options['post_types'] );
+			}, $settings['post_types'] );
 		}
 		// return post types
 		return $post_types_array;
@@ -141,7 +141,7 @@ Class Phases {
 	 */
 	public static function create_phases_taxonomy() {
 
-		$options = get_option( 'phases_settings' );
+		$settings = get_option( 'phases_settings' );
 		$post_types = self::get_phases_post_types();
 
 		register_taxonomy(
@@ -166,7 +166,7 @@ Class Phases {
 					'not_found'                  => 'Not Found', 'phases',
 				),
 				'meta_box_cb'       => array ( 'Phases', 'group_meta_box' ),
-				'public'            => ( $options['debug'] ?? 'off' === 'on' ),
+				'public'            => ( $settings['debug'] ?? 'off' === 'on' ),
 				'capabilities' => array(
 					'manage__terms' => 'edit_posts',
 					'edit_terms'    => 'manage_categories',
@@ -184,8 +184,8 @@ Class Phases {
 	public static function create_default_phases_terms() {
 		
 		// if this is the initial activation
-		$options = get_option( 'phases_settings' );
-		if ( $options['activation'] ?? false ) {
+		$settings = get_option( 'phases_settings' );
+		if ( $settings['activation'] ?? false ) {
 			// set up to do / doing / done default terms
 			wp_insert_term( 'Done', 'phases', array(
 				'name' => 'Done',
@@ -206,8 +206,8 @@ Class Phases {
 				) )
 			) );
 			// identify as no longer being initial activation
-			unset( $options['activation'] );
-			update_option( 'phases_settings', $options );
+			unset( $settings['activation'] );
+			update_option( 'phases_settings', $settings );
 		}
 
 	}
@@ -307,7 +307,7 @@ Class Phases {
 			__( 'Show on post types:', 'phases' ),
 			function() {
 				// grab the plugin options
-				$options = get_option( 'phases_settings' );
+				$settings = get_option( 'phases_settings' );
 				// get all post types that are publicly available
 				$post_types = get_post_types( array( 'public' => true ) );
 				// create checkboxs listing the post types for which phases should appear
@@ -324,7 +324,7 @@ Class Phases {
 						$key,
 						'phases_settings[post_types][' . $key . ']',
 						$key,
-						checked( $options['post_types'][$key] ?? '', $key, false ),
+						checked( $settings['post_types'][$key] ?? '', $key, false ),
 						$type_obj->labels->name
 					);
 				}
@@ -334,19 +334,45 @@ Class Phases {
 			'phases_admin_post_type_section'
 		);
 
+		// enable/disable notes
+		add_settings_section(
+			'phases_admin_notes_section',
+			__( 'Notes', 'phases' ),
+			function() {
+				printf( '<p>%s</p>', __( 'Enable to support notes related to a post and the phase it\'s in.', 'phases' ) );
+				$settings = get_option( 'phases_settings' );
+				printf(
+					'<fieldset>%s%s<fieldset>',
+					sprintf(
+						'<p><label><input type="checkbox" name="%s" value="on"%s /> %s</label></p>',
+							'phases_settings[notes]',
+						( $settings['notes'] ?? 'off' === 'on' ? ' checked' : '' ),
+						__( 'Enable Notes', 'phases' )
+					),
+					sprintf(
+						'<p><label><input type="checkbox" name="%s" value="on"%s /> %s</label></p>',
+							'phases_settings[notes_in_column]',
+						( $settings['notes_in_column'] ?? 'off' === 'on' ? ' checked' : '' ),
+						__( 'Show notes in post list column', 'phases' )
+					)
+				);
+			},
+			'pluginPage'
+		);
+
 		// turn on/off debug mode
 		add_settings_section(
 			'phases_admin_debug_section',
-			__( 'Enable Debugging', 'phases' ),
+			__( 'Debugging', 'phases' ),
 			function() {
-				$options = get_option( 'phases_settings' );
-				$debug_enabled = $options['debug'] ?? 'off' === 'on';
+				$settings = get_option( 'phases_settings' );
+				$enabled = $settings['debug'] ?? 'off' === 'on';
 				printf(
 					'<fieldset><label><input type="checkbox" name="%s" value="on"%s /> %s</label><fieldset>%s',
 					'phases_settings[debug]',
-					( $debug_enabled ? ' checked' : '' ),
+					( $enabled ? ' checked' : '' ),
 					__( 'Enable Debug Mode', 'phases' ),
-					( $debug_enabled ? '<code style="white-space:pre;display:block">' . print_r( $options, 1 ) . '</code>' : '' )
+					( $enabled ? '<code style="white-space:pre;display:block">' . print_r( $settings, 1 ) . '</code>' : '' )
 				);
 			},
 			'pluginPage'
@@ -384,7 +410,7 @@ Class Phases {
 		unset( $value['phases'] );
 
 		// update the settings value sans phases
-		update_option( 'phases_settings', array( ...$value ) );
+		update_option( 'phases_settings', $value );
 
 		// reattach the hook
 		add_action( 'update_option_phases_settings', array( 'Phases', 'save_settings' ), 10, 2 );
@@ -421,6 +447,14 @@ Class Phases {
 					$phase['slug'],
 					$phase['name']
 				);
+			}
+			$notes = '';
+			$settings = get_option( 'phases_settings' );
+			if ( $settings['notes_in_column'] ?? 'off' === 'on' ) {
+				$meta = get_post_meta( $id, 'phases_note', true );
+				if ( $meta ) {
+					$notes = printf( '<div class="phases-note">%s</div>', sanitize_textarea_field( $meta ) );
+				}
 			}
 		}
 	}
@@ -517,13 +551,25 @@ Class Phases {
 				'phases_options',
 				$label,
 				function() use ( $options ) {
+					$settings = get_option( 'phases_settings' );
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
-					printf( '<select class="phases-phase-select" name="phases_phase_id">%s</select>', implode( "\n", $options ) );
+					printf(
+						'<select class="phases-phase-select" name="phases_phase_id">%s</select>',
+						implode( "\n", $options )
+					);
 					printf(
 						'<a href="%s" class="phases-manage-link">%s</a>',
 						esc_url( get_admin_url( null, 'options-general.php?page=phases_admin' ) ),
 						__( 'Manage Phases', 'phases' )
 					);
+					if ( $settings['notes'] ?? 'off' === 'on' ) {
+						$meta = get_post_meta( get_the_id(), 'phases_note', true );
+						printf(
+							'<label class="phases-notes">%s<br /><textarea  name="phases_phase_note" rows="7">%s</textarea></label>',
+							__( 'Notes', 'phases' ),
+							sanitize_textarea_field( $meta )
+						);
+					}
 				},
 				self::get_phases_post_types(),
 				'side'
@@ -536,7 +582,7 @@ Class Phases {
 	/**
      * Saves phase data when a post is saved
      *
-     * @param int $post_id ID of the post e.g. '1'
+     * @param int $post_id ID of the post
      *
      * @return void
      */
@@ -570,20 +616,12 @@ Class Phases {
 			wp_set_object_terms( $post_id, array( (int) $new_phase_id ), 'phases', false );
 		}
 
-    }
-
-	public static function quick_and_bulk_save( $post_id ){
-
-		$is_quick = wp_verify_nonce( $_POST[ '_inline_edit' ] ?? '', 'inlineeditnonce' );
-		$is_bulk = wp_verify_nonce( $_GET[ '_wpnonce' ] ?? '', 'bulk-posts' );
-
-		if ( ! $is_quick && ! $is_bulk ) {
-			return;
+		// maybe update notes
+		if ( isset( $_POST['phases_phase_note'] ) ) {
+			update_post_meta( $post_id, 'phases_note', sanitize_textarea_field( $_POST['phases_phase_note'] ) );
 		}
 
-
-
-	}
+    }
 
 	/**
 	 * Enqueues scripts and styles.
