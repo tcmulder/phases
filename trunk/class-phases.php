@@ -148,9 +148,9 @@ Class Phases {
 			// create our phase data
 			$phase = array( 
 				...$faux_meta,
-				'id'   => $term->term_id,
-				'name' => $term->name,
-				'slug' => $term->slug,
+				'id'   => (int) $term->term_id,
+				'name' => sanitize_text_field( $term->name ),
+				'slug' => sanitize_title( $term->slug ),
 			); 
 		}
 		// return the phase data
@@ -211,21 +211,21 @@ Class Phases {
 			$post_types,
 			array(
 				'labels' => array(
-					'name'                       => 'Phases', 'Taxonomy General Name', 'phases',
-					'singular_name'              => 'Phase', 'Taxonomy Singular Name', 'phases',
-					'menu_name'                  => 'Phases', 'phases',
-					'all_items'                  => 'All Items', 'phases',
-					'parent_item'                => 'Parent Item', 'phases',
-					'parent_item_colon'          => 'Parent Item:', 'phases',
-					'new_item_name'              => 'New Item Name', 'phases',
-					'add_new_item'               => 'Add New Item', 'phases',
-					'edit_item'                  => 'Edit Item', 'phases',
-					'update_item'                => 'Update Item', 'phases',
-					'separate_items_with_commas' => 'Separate items with commas', 'phases',
-					'search_items'               => 'Search Items', 'phases',
-					'add_or_remove_items'        => 'Add or remove items', 'phases',
-					'choose_from_most_used'      => 'Choose from the most used items', 'phases',
-					'not_found'                  => 'Not Found', 'phases',
+					'name'                       => _x( 'Phases', 'Taxonomy General Name', 'phases' ),
+					'singular_name'              => _x( 'Phase', 'Taxonomy Singular Name', 'phases' ),
+					'menu_name'                  => __( 'Phases', 'phases' ),
+					'all_items'                  => __( 'All Items', 'phases' ),
+					'parent_item'                => __( 'Parent Item', 'phases' ),
+					'parent_item_colon'          => __( 'Parent Item:', 'phases' ),
+					'new_item_name'              => __( 'New Item Name', 'phases' ),
+					'add_new_item'               => __( 'Add New Item', 'phases' ),
+					'edit_item'                  => __( 'Edit Item', 'phases' ),
+					'update_item'                => __( 'Update Item', 'phases' ),
+					'separate_items_with_commas' => __( 'Separate items with commas', 'phases' ),
+					'search_items'               => __( 'Search Items', 'phases' ),
+					'add_or_remove_items'        => __( 'Add or remove items', 'phases' ),
+					'choose_from_most_used'      => __( 'Choose from the most used items', 'phases' ),
+					'not_found'                  => __( 'Not Found', 'phases' ),
 				),
 				'public'            => $debug,
 				'capabilities' => array(
@@ -253,16 +253,13 @@ Class Phases {
 			'manage_options',
 			'phases_admin',
 			function() {
-				ob_start();
-					settings_fields( 'pluginPage' );
-					do_settings_sections( 'pluginPage' );
-					submit_button();
-				$form_html = ob_get_clean();
-				printf(
-					'<form class="phases" action="options.php" method="post"><h1>%s</h1>%s</form>',
-					__( 'Phase Options', 'phases' ),
-					$form_html,
-				);
+				// ob_start();
+				echo '<form class="phases" action="options.php" method="post">';
+				printf( '<h1>%s</h1>', esc_html__( 'Phase Options', 'phases' ) );
+				settings_fields( 'pluginPage' );
+				do_settings_sections( 'pluginPage' );
+				submit_button();
+				echo '</form>';
 			}
 		);
 
@@ -283,7 +280,7 @@ Class Phases {
 			'phases_admin_phases_section',
 			__( 'Phase Phases', 'phases' ),
 			function() {
-				printf( '<p>%s</p>', __( 'Add or remove phases in your phase.', 'phases' ) );
+				printf( '<p>%s</p>', esc_html__( 'Add or remove phases in your phase.', 'phases' ) );
 			},
 			'pluginPage'
 		);
@@ -307,17 +304,17 @@ Class Phases {
 						$phase['id'],
 						$phase['id'],
 						$phase['id'],
-						esc_html( $phase['name'] ),
+						$phase['name'],
 						$phase['id'],
 						$phase['color'],
-						__( 'Remove', 'phases' ),
-						__( 'Remove', 'phases' )
+						esc_html__( 'Remove', 'phases' ),
+						esc_html__( 'Remove', 'phases' )
 					);
 				}
 				printf(
 					'<fieldset>%s <button class="phases__add button-secondary" type="button">%s</button></fieldset>',
 					implode( "\n", $phases_html ),
-					__( 'Add a Phase', 'phases' )
+					esc_html__( 'Add a Phase', 'phases' )
 				);
 			},
 			'pluginPage',
@@ -329,7 +326,7 @@ Class Phases {
 			'phases_admin_post_type_section',
 			__( 'Enable for Post Types', 'phases' ),
 			function() {
-				printf( '<p>%s</p>', __( 'Select which post types will use phases.', 'phases' ) );
+				printf( '<p>%s</p>', esc_html__( 'Select which post types will use phases.', 'phases' ) );
 			},
 			'pluginPage'
 		);
@@ -367,7 +364,7 @@ Class Phases {
 			'phases_admin_notes_section',
 			__( 'Notes', 'phases' ),
 			function() {
-				printf( '<p>%s</p>', __( 'Enable to support notes related to a post and the phase it\'s in.', 'phases' ) );
+				printf( '<p>%s</p>', esc_html__( 'Enable to support notes related to a post and the phase it\'s in.', 'phases' ) );
 				$settings = get_option( 'phases_settings' );
 				printf(
 					'<fieldset>%s%s<fieldset>',
@@ -375,13 +372,13 @@ Class Phases {
 						'<p><label><input type="checkbox" name="%s" value="on"%s /> %s</label></p>',
 							'phases_settings[notes]',
 						( $settings['notes'] ?? 'off' === 'on' ? ' checked' : '' ),
-						__( 'Enable Notes', 'phases' )
+						esc_html__( 'Enable Notes', 'phases' )
 					),
 					sprintf(
 						'<p><label><input type="checkbox" name="%s" value="on"%s /> %s</label></p>',
 							'phases_settings[notes_in_column]',
 						( $settings['notes_in_column'] ?? 'off' === 'on' ? ' checked' : '' ),
-						__( 'Show notes in post list column', 'phases' )
+						esc_html__( 'Show notes in post list column', 'phases' )
 					)
 				);
 			},
@@ -399,8 +396,8 @@ Class Phases {
 					'<fieldset><label><input type="checkbox" name="%s" value="on"%s /> %s</label><fieldset>%s',
 					'phases_settings[debug]',
 					( $enabled ? ' checked' : '' ),
-					__( 'Enable Debug Mode', 'phases' ),
-					( $enabled ? '<code style="white-space:pre;display:block">' . print_r( $settings, 1 ) . '</code>' : '' )
+					esc_html__( 'Enable Debug Mode', 'phases' ),
+					( $enabled ? '<code style="white-space:pre;display:block">' . esc_html( print_r( $settings, 1 ) ) . '</code>' : '' )
 				);
 			},
 			'pluginPage'
@@ -458,8 +455,8 @@ Class Phases {
 		// create a heading for the phases column with a tooltip
 		$cols['phases'] = sprintf(
 			'<abbr style="cursor:help;" title="%s">%s</abbr>',
-			__( 'Current post phase', 'phases' ),
-			__( 'Phase', 'phases' )
+			esc_html__( 'Current post phase', 'phases' ),
+			esc_html__( 'Phase', 'phases' )
 		);
 		return $cols;
 
@@ -481,7 +478,7 @@ Class Phases {
 			if ( ! empty ( $phase ) ) {
 				printf(
 					'<a href="%sedit.php?phases=%s&post_type=%s" class="phases-value--%s">%s</a>',
-					get_admin_url(),
+					esc_html( get_admin_url() ),
 					$phase['slug'],
 					get_post_type( $id ),
 					$phase['slug'],
@@ -494,29 +491,38 @@ Class Phases {
 			if ( $settings['notes_in_column'] ?? 'off' === 'on' ) {
 				$meta = get_post_meta( $id, 'phases_note', true );
 				if ( $meta ) {
-					$notes = printf( '<div class="phases-note">%s</div>', sanitize_textarea_field( $meta ) );
+					$notes = printf(
+						'<div class="phases-note">%s</div>',
+						esc_html( sanitize_textarea_field( $meta ) )
+					);
 				}
 			}
 		}
 	}
 
 	/**
-	 * Adds a dropdown that allows filtering on the posts current phase.
+	 * Adds a dropdown that allows filtering by phase to admin columns.
 	 *
+	 * @param string $post_type The post type slug.
 	 * @since 1.0.0
 	 */
-	public static function posts_filter_dropdown() {
+	public static function posts_filter_dropdown( $post_type ) {
 		
 		// if the current post type has phases enabled
-		$post_type = sanitize_title( $_GET['post_type'] ?? '' );
+		$post_type = sanitize_title( $post_type );
 		if ( $post_type && self::has_phases( $post_type ) ) {
-
 			// start with no options
 			$options = array();
 			// create options for each phase
 			$terms = self::get_phase_phases();
+			// get current filtered-to phase (if any) already selected from this dropdown
+			$cur_slug = '';
+			$query = get_queried_object();
+			if ( $query && 'phases' === $query->taxonomy ) {
+				$cur_slug = $query->slug;
+			}
 			foreach ( $terms as $term ) {
-				$is_selected = $_GET['phases'] ?? '' === $term->slug ? ' selected' : '';
+				$is_selected = $cur_slug === $term->slug ? ' selected' : '';
 				$options[] = sprintf(
 					'<option value="%s"%s>%s</option>',
 					$term->slug,
@@ -529,7 +535,7 @@ Class Phases {
 				printf(
 					'<label class="screen-reader-text" for="phases-filter">%s</label><select name="phases"><option value>%s</option>%s</select>',
 					esc_html__( 'Filter by Phase Phase', 'phases' ),
-					__( 'All Phases', 'phases' ),
+					esc_html__( 'All Phases', 'phases' ),
 					implode( "\n", $options ),
 				);
 			}
@@ -555,7 +561,7 @@ Class Phases {
 			$label = sprintf(
 				'<span class="phases-swatch" style="background-color:%s;">%s: %s</span>',
 				empty( $post_phase ) ? 'transparent' : $post_phase['color'],
-				__( 'Phase', 'phases' ),
+				esc_html__( 'Phase', 'phases' ),
 				empty( $post_phase ) ? '' : $post_phase['name']
 			);
 
@@ -583,7 +589,7 @@ Class Phases {
 			array_unshift( $options, sprintf(
 				'<option value="0" data-color=""%s>%s</option>',
 				$has_selected ? '' : ' selected',
-				__( 'None', 'phases' )
+				esc_html__( 'None', 'phases' )
 			) );
 
 			// create the meta box
@@ -595,7 +601,7 @@ Class Phases {
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
 					printf(
 						'<p>%s:</p>',
-						__( 'Set this post as', 'phases' )
+						esc_html__( 'Set this post as', 'phases' )
 					);
 					printf(
 						'<select class="phases-phase-select" name="phases_phase_id">%s</select>',
@@ -605,14 +611,14 @@ Class Phases {
 						$meta = get_post_meta( get_the_id(), 'phases_note', true );
 						printf(
 							'<label class="phases-notes"><span>%s:</span><textarea  name="phases_phase_note" rows="7">%s</textarea></label>',
-							__( 'Notes', 'phases' ),
-							sanitize_textarea_field( $meta )
+							esc_html__( 'Notes', 'phases' ),
+							esc_html( sanitize_textarea_field( $meta ) )
 						);
 					}
 					printf(
 						'<a href="%s" class="phases-manage-link">%s</a>',
 						esc_url( get_admin_url( null, 'options-general.php?page=phases_admin' ) ),
-						__( 'Manage phases', 'phases' )
+						esc_html__( 'Manage phases', 'phases' )
 					);
 				},
 				self::get_phases_post_types(),
@@ -748,8 +754,8 @@ Class Phases {
 		if ( ! empty( $phases ) ) {
 			$options = sprintf(
 				'<option disabled selected>%s</option><option value="">%s</option>',
-				__( '(Unchanged)', 'phases' ),
-				__( 'None', 'phases' )
+				esc_html__( '(Unchanged)', 'phases' ),
+				esc_html__( 'None', 'phases' )
 			);
 			foreach ( $phases as $phase ) {
 				$options .= sprintf( '<option value="%s">%s</option>', $phase->term_id, $phase->name );
@@ -765,8 +771,14 @@ Class Phases {
 						</div>
 					</div>
 				</fieldset>',
-				__( 'Phase', 'phases' ),
-				$options,
+				esc_html__( 'Phase', 'phases' ),
+				wp_kses( $options, array(
+					'option' => array(
+						'disabled' => array(),
+						'selected' => array(),
+						'value' => array(),
+					),
+				) ),
 			);
 		}
     }
