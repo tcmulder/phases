@@ -24,17 +24,19 @@ jQuery(document).ready(function($){
 
     // add phases on click of addition button
     $phases.on('click', '.phases__add', function(){
+        // use temporary unique ID
         const id = `new-phase-${Date.now()}`;
         $(this).parent().prepend(`
             <div class="phases__phase">
-                <input name="phases_settings[phases][${id}][id]" value="${id}" type="text" />
+                <input name="phases_settings[phases][${id}][id]" value="${id}" type="hidden" />
                 <input name="phases_settings[phases][${id}][name]" value="" type="text" />
                 <span class="phases__color">
-                    <input name="phases_settings[phases][${id}][color]" value="%s" data-default-color="#cccccc" class="phases-color" type="text" />
+                    <input name="phases_settings[phases][${id}][color]" value="" data-default-color="#cccccc" class="phases-color" type="text" />
                 </span>
                 <button class="phases__remove button-secondary" aria-label="Remove" title="Remove" type="button">✕</button>
             </div>
         `)
+        // initiate color picker
         .find('.phases-color').wpColorPicker({ palettes });
     });
 

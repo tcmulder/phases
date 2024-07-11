@@ -1,57 +1,24 @@
-=== Aqua SVG Sprite ===
+=== Post Edit Phases ===
 
 Contributors: thinkaquamarine
-Tags: svg sprite, svg, sprite
-Requires at least: 5.6.0
-Tested up to: 6.5
-Stable tag: 3.0.11
+Tags: phases, process, organize
+Requires at least: 6.5.4
+Tested up to: 6.5.4
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Creates SVG sprites.
+Creates phases to organize your posts.
 
 == Description ==
 
-This plugin allows you to create SVG sprites out of images from your WordPress media library.
+This plugin allows you to keep track of the status of your posts as you work through each phase of creating them.
 
-= Why Use SVG Sprites? =
+= Why Use Phases? =
 
-SVG, or Scalable Vector Graphics, allow you to add resolution-independent images to your websites. These images are generally much sharper and smaller in file size compared to other formats like JPEG.
+Phases helps you stay organized as you progress through the steps of creating your posts. The steps from start to finish may differ, but Phases lets you keep track of your progress at a glance.
 
-However, each SVG image needs to be requested separately, which slows down your website. Adding SVG images to a sprite allows the browser to download multiple images with just one request, then show the individual pieces of the sprite separately. By reducing requests, this speeds up your site.
-
-= Creating a Sprite =
-
-Aqua SVG Sprite adds a new SVG Sprite menu to the WordPress sidebar, which functions a lot like the default Posts or Pages menus; you can add, edit, and trash individual SVG images under All Items.
-
-When you add or edit an item, You’re able to choose a few things:
-
-1. The Title makes it easy to find an individual SVG and is also used for selecting an SVG by the shortcode generator button.
-2. The Slug is used as the ID for the symbol in the sprite, which essentially allows WordPress to extract one SVG image from the sprite and display it on the page.
-3. The Aqua SVG Sprite Image is where you add a single SVG image that gets added to the sprite.
-4. There are some basic instructions on usage, pre-populated with the ID and group (explained in the next section) for the individual SVG you’re viewing.
-5. In the sidebar, you can select a Sprite Group as explained in the next section.
-6. Last of course, Publish adds the SVG to the sprite.
-
-= Creating Additional Sprite Groups =
-
-If you’d like to use more than one sprite (the built in General sprite), you can add additional groups by clicking SVG Sprite > Sprite Groups in the WordPress sidebar. These work similar to WordPress tags, except you can only add each individual SVG image to one sprite group. Since they’re compiled into separate sprite groups, marking the same SVG for multiple groups would duplicate code, defeating the purpose of a sprite.
-
-After you add a new Sprite Group, it appears as a selection in the right sidebar’s Sprite Group selector when creating or editing individual SVG sprite images.
-
-= Using the Gutenberg Block =
-
-Aqua SVG Sprite will add a new block called SVG Sprite to your Gutenberg block editor. After you add an SVG Sprite block, you can select the image you would like to use in the block inspector to the right. You can also add an advanced pseudo-array or HTML properties for more control, like `viewbox=0 0 1000 1000,fill=aquamarine` to add a viewbox and fill to the SVG element.
-
-= Using the Shortcodes =
-
-Aqua SVG Sprite will add a new `[SVG]` button to your classic editor (anywhere a WYSIWYG with TinyMCE appears), which will guide you through adding a shortcode to your content.
-
-For example, you could display the "Some Slug" image from the default "General" sprite group like `[aqua-svg slug="some-slug"]`. If "Some Slug" were part of the "Some Group" sprite instead, you would use `[aqua-svg slug="some-slug" sprite="some-group"]`. You can also add a pseudo-array of HTML properties for more control like `[aqua-svg slug="some-slug" sprite="some-sprite" attr="viewbox=0 0 1000 1000,fill=aquamarine"]` to add a viewbox and fill to the SVG element..
-
-= Using PHP Functions and Advanced Features =
-
-You can [visit the documentation](http://www.thinkaquamarine.com/development/phases-plugin/) for more information on using PHP functions, along with code examples and details on more advanced features.
+By default, phases comes with To Do, Doing Done phases, but you can change this to suit your needs. For instance, if you're entering content, maybe you want a Not Started, Rough Draft, Edited, and Approved phases for your posts; or, if you're testing a site, maybe you want Untested, QA, QC, Final phases. The phases you choose are up to you!
 
 == Installation ==
 

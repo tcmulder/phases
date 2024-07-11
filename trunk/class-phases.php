@@ -1,9 +1,17 @@
 <?php
 
+/**
+ * Phases core class
+ * 
+ * @since 1.0.0
+ */
 Class Phases {
 
 	/**
 	 * Kicks off first things.
+	 * 
+	 * @since 1.0.0
+	 * 
 	 */
 	public static function init() {
 		self::init_hooks();
@@ -12,6 +20,8 @@ Class Phases {
 
 	/**
 	 * Attaches methods to hooks.
+	 * 
+	 * @since 1.0.0
 	 */
 	public static function init_hooks() {
 		
@@ -28,37 +38,64 @@ Class Phases {
         add_action( 'quick_edit_custom_box', array( 'Phases', 'quick_and_bulk_field' ) );
 		add_filter( 'quick_edit_show_taxonomy', array( 'Phases', 'quick_and_bulk_mods' ), 10, 3 );
 
+		// add columns only to post types that have phases activated
 		$phase_post_types = self::get_phases_post_types();
-		if ( ! empty( $phase_post_types ) ) {
-			foreach ( $phase_post_types as $type ) {
-				add_action( 'manage_edit-' . $type . '_columns', array( 'Phases', 'column_add' ) );
-        		add_filter( 'manage_' . $type . '_posts_custom_column', array( 'Phases', 'column_value' ), 10, 3 );
-			}
+		foreach ( $phase_post_types as $type ) {
+			add_action( 'manage_edit-' . $type . '_columns', array( 'Phases', 'column_add' ) );
+			add_filter( 'manage_' . $type . '_posts_custom_column', array( 'Phases', 'column_value' ), 10, 3 );
 		}
  
 	}
 
 	/**
-	 * Runs on activation to initialize the plugin settings
+	 * Runs on activation to initialize the plugin settings.
+	 * 
+	 * @since 1.0.0
 	 */
 	public static function phases_activation() {
+
 		// bail if we have settings already (i.e. this isn't the first activation but a reactivation)
 		if ( get_option( 'phases_settings' ) ) {
 			return;
 		}
-		// show ui on pages by default
+		// show ui on page post type by default and identify this as being the initial activation (used by term pre-population later)
 		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ), 'activation' => true ) );
+
 	}
 
 	/**
-	 * Gets post types two which phases should apply.
+	 * Creates initial terms if plugin is being initialized for the first time.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static function create_default_phases_terms() {
+		
+		// if this is the initial activation
+		$settings = get_option( 'phases_settings' );
+		if ( $settings['activation'] ?? false ) {
+			// set up to do / doing / done default terms
+			wp_insert_term( 'Done', 'phases', array( 'name' => 'Done', 'description' => serialize( array( 'color' => '#d9ead3' ) ) ) );
+			wp_insert_term( 'Doing', 'phases', array( 'name' => 'Doing', 'description' => serialize( array( 'color' => '#fff3cc' ) ) ) );
+			wp_insert_term( 'To Do', 'phases', array( 'name' => 'To Do', 'description' => serialize( array( 'color' => '#f5cbcc' ) ) ) );
+			// identify as no longer being initial activation
+			unset( $settings['activation'] );
+			update_option( 'phases_settings', $settings );
+		}
+
+	}
+
+	/**
+	 * Gets post types to which phases should apply.
+	 * 
+	 * @return array Array of post types for which phases is activated.
+	 * @since 1.0.0
 	 */
 	public static function get_phases_post_types() {
 		
 		// prep to store array of post types to show phases on
 		$post_types_array = array();
 
-		// get the phase post type settings and loop through them
+		// get the post types defined in settings and loop through them
 		$settings = get_option( 'phases_settings' );
 		if ( $settings && ! empty( $settings['post_types'] ?? array() ) ) {
 			// create an indexical array of the post types
@@ -71,34 +108,44 @@ Class Phases {
 	}
 
 	/**
-	 * Gets terms related to phase phases.
+	 * Gets all phase terms.
 	 *
-	 * @param array $args
-	 * @return array
+	 * @param array $args Extra get_terms() query parameters.
+	 * @return array Array of terms (empty if no terms are set).
+	 * @since 1.0.0
 	 */
 	public static function get_phase_phases( $args = array() ) {
 
+		// establish default query (i.e. just get all phase taxonomy terms)
 		$defaults = array( 
 			'taxonomy' => 'phases',
 			'hide_empty' => 0,
 		);
+		// merge any custom query arguments
 		$query_args = wp_parse_args( $args, $defaults );
+		// get the terms and return them (or an empty array)
 		$terms = get_terms( $query_args );
 		return ( $terms ? $terms : array() );
 
 	}
 
 	/**
-	 * Gets a single phase's data.
+	 * Gets a single phase's data (parsed from its description).
 	 *
-	 * @param obj $term
-	 * @return mixed
+	 * @param obj $term A WP_Term object to parse.
+	 * @return array Array of phase data (or empty if no data).
+	 * @since 1.0.0
 	 */
 	public static function get_phase_phase( $term ) {
-		$phase = false;
+
+		// start with no phase data
+		$phase = array();
+		// if we were passed a valid term
 		if ( $term ) {
+			// get data from the term's description
 			$faux_meta = maybe_unserialize( $term->description );
 			$faux_meta = wp_parse_args( $faux_meta, array( 'color' => '#cccccc' ) );
+			// create our phase data
 			$phase = array( 
 				...$faux_meta,
 				'id'   => $term->term_id,
@@ -106,42 +153,57 @@ Class Phases {
 				'slug' => $term->slug,
 			); 
 		}
+		// return the phase data
 		return $phase;
 	}
 
 	/**
-	 * Gets currently-applied phase.
+	 * Gets a post's phase data for the currently-applied phase.
 	 *
-	 * @param int $post_id
-	 * @return array
+	 * @param int $post_id ID of the post to evaluate.
+	 * @return array Array of phase data (or empty if no data).
+	 * @since 1.0.0
 	 */
 	public static function get_post_phase( $post_id = 0 ) {
+		
+		// start with no phase data
 		$phase = array();
+		// get the first phase term and return its data
 		$terms = wp_get_post_terms( $post_id, 'phases' );
 		if ( $terms ) {
-			// note that only one phase can be selected at a time
 			$phase = self::get_phase_phase( $terms[0] );
 		}
 		return $phase;
+
 	}
 
 	/**
 	 * Checks if a post type has phases enabled.
 	 *
-	 * @param string $post_type
-	 * @return bool
+	 * @param string $post_type The post type to test.
+	 * @return bool True if phases are enabled and false if not.
+	 * @since 1.0.0
 	 */
 	public static function has_phases( $post_type ) {
+
+		// get all post types on which phases are active
 		$post_types = self::get_phases_post_types();
+		// see if this post type is in the list
 		return in_array( $post_type, $post_types );
+
 	}
 
 	/**
-	 * Creates taxonomy for phase phases.
+	 * Creates taxonomy for phases.
+	 * 
+	 * @since 1.0.0
 	 */
 	public static function create_phases_taxonomy() {
 
+		// see if debug is on
 		$settings = get_option( 'phases_settings' );
+		$debug = ( $settings['debug'] ?? 'off' === 'on' );
+		// get the post types for which the phases taxonomy is turned on
 		$post_types = self::get_phases_post_types();
 
 		register_taxonomy(
@@ -165,8 +227,7 @@ Class Phases {
 					'choose_from_most_used'      => 'Choose from the most used items', 'phases',
 					'not_found'                  => 'Not Found', 'phases',
 				),
-				'meta_box_cb'       => array ( 'Phases', 'group_meta_box' ),
-				'public'            => ( $settings['debug'] ?? 'off' === 'on' ),
+				'public'            => $debug,
 				'capabilities' => array(
 					'manage__terms' => 'edit_posts',
 					'edit_terms'    => 'manage_categories',
@@ -179,50 +240,16 @@ Class Phases {
 	}
 
 	/**
-	 * Creates initial terms (if the plugin is being initialized for the first time)
+	 * Creates a settings page within the Settings menu.
+	 *
+	 * @since 1.0.0
 	 */
-	public static function create_default_phases_terms() {
-		
-		// if this is the initial activation
-		$settings = get_option( 'phases_settings' );
-		if ( $settings['activation'] ?? false ) {
-			// set up to do / doing / done default terms
-			wp_insert_term( 'Done', 'phases', array(
-				'name' => 'Done',
-				'description' => serialize( array(
-					'color' => '#d9ead3'
-				) )
-			) );
-			wp_insert_term( 'Doing', 'phases', array(
-				'name' => 'Doing',
-				'description' => serialize( array(
-					'color' => '#fff3cc'
-				) )
-			) );
-			wp_insert_term( 'To Do', 'phases', array(
-				'name' => 'To Do',
-				'description' => serialize( array(
-					'color' => '#f5cbcc'
-				) )
-			) );
-			// identify as no longer being initial activation
-			unset( $settings['activation'] );
-			update_option( 'phases_settings', $settings );
-		}
-
-	}
-
-	/**
-	 * Creates the settings page for the plugin.
-	 */
-
-	// add a menu link inside the Settings menu
 	public static function add_admin_menu(  ) {
 
 		add_submenu_page(
 			'options-general.php',
 			__( 'Phases', 'phases' ),
-			__( '🥝 Phases', 'phases' ),
+			__( 'Phases', 'phases' ),
 			'manage_options',
 			'phases_admin',
 			function() {
@@ -241,13 +268,17 @@ Class Phases {
 
 	}
 
-	// establish option page setting sections/fields
+	/**
+	 * Establishes option page setting sections/fields.
+	 *
+	 * @since 1.0.0
+	 */
 	public static function phases_settings_init(  ) {
 
 		// register the settings option storage location
 		register_setting( 'pluginPage', 'phases_settings' );
 
-		// enable addition/removal of phase phases
+		// allow user to add/remove phases
 		add_settings_section(
 			'phases_admin_phases_section',
 			__( 'Phase Phases', 'phases' ),
@@ -293,7 +324,7 @@ Class Phases {
 			'phases_admin_phases_section'
 		);
 
-		// create selection of post types where layouts will appear
+		// allow user to select post types on which to enable phases
 		add_settings_section(
 			'phases_admin_post_type_section',
 			__( 'Enable for Post Types', 'phases' ),
@@ -306,11 +337,8 @@ Class Phases {
 			'phases_admin_post_type_fields',
 			__( 'Show on post types:', 'phases' ),
 			function() {
-				// grab the plugin options
 				$settings = get_option( 'phases_settings' );
-				// get all post types that are publicly available
 				$post_types = get_post_types( array( 'public' => true ) );
-				// create checkboxs listing the post types for which phases should appear
 				$fields = array();
 				foreach ( $post_types as $key => $name ) {
 					// media is a special type we'll exclude from phases automatically
@@ -334,7 +362,7 @@ Class Phases {
 			'phases_admin_post_type_section'
 		);
 
-		// enable/disable notes
+		// allow user to enable/disable notes
 		add_settings_section(
 			'phases_admin_notes_section',
 			__( 'Notes', 'phases' ),
@@ -360,7 +388,7 @@ Class Phases {
 			'pluginPage'
 		);
 
-		// turn on/off debug mode
+		// allow user to turn on/off debug mode
 		add_settings_section(
 			'phases_admin_debug_section',
 			__( 'Debugging', 'phases' ),
@@ -380,13 +408,19 @@ Class Phases {
 
 	}
 
-	// handle settings save
+	/**
+	 * Handles settings save.
+	 *
+	 * @param mixed $old_value The old option value.
+	 * @param mixed $value The new option value.
+	 * @since 1.0.0
+	 */
 	public static function save_settings( $old_value, $value ) {
 
 		// detach the hook so it doesn't run twice
 		remove_action( 'update_option_phases_settings', array( 'Phases', 'save_settings' ), 10, 2 );
 
-		// extract phases information and save as taxonomy rather than option field
+		// extract phases information and save as taxonomy (rather than to the plugin settings or post meta)
 		$old_term_ids = self::get_phase_phases( array( 'fields' => 'ids' ) );
 		$new_terms = $value['phases'] ?? array();
 		foreach( $new_terms as $new_term ) {
@@ -407,9 +441,9 @@ Class Phases {
 				wp_delete_term( $old_term_id, 'phases' );
 			}
 		}
+		
+		// update the settings value (without phases info since that's stored in our taxonomy)
 		unset( $value['phases'] );
-
-		// update the settings value sans phases
 		update_option( 'phases_settings', $value );
 
 		// reattach the hook
@@ -420,23 +454,29 @@ Class Phases {
 	 * Creates admin column header.
 	 */
 	public static function column_add($cols) {
+
+		// create a heading for the phases column with a tooltip
 		$cols['phases'] = sprintf(
 			'<abbr style="cursor:help;" title="%s">%s</abbr>',
-			__( 'Current Phase Phase', 'phases' ),
+			__( 'Current post phase', 'phases' ),
 			__( 'Phase', 'phases' )
 		);
 		return $cols;
+
 	}
 
 	/**
-	 * Creates admin column values.
+	 * Creates admin column cell values.
 	 *
-	 * @param string $column_name
-	 * @param int $id
-	 * @return void
+	 * @param string $column_name Name of the column.
+	 * @param int $id Post ID.
+	 * @since 1.0.0
 	 */
 	public static function column_value( $column_name, $id ) {
+
+		// if this is the phases column
 		if ( 'phases' === $column_name ) {
+			// show this post's phases (if any)
 			$phase = self::get_post_phase( $id );
 			if ( ! empty ( $phase ) ) {
 				printf(
@@ -448,6 +488,7 @@ Class Phases {
 					$phase['name']
 				);
 			}
+			// show this post's notes (if notes within columns is on)
 			$notes = '';
 			$settings = get_option( 'phases_settings' );
 			if ( $settings['notes_in_column'] ?? 'off' === 'on' ) {
@@ -462,18 +503,18 @@ Class Phases {
 	/**
 	 * Adds a dropdown that allows filtering on the posts current phase.
 	 *
-	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function posts_filter_dropdown() {
 		
+		// if the current post type has phases enabled
 		$post_type = sanitize_title( $_GET['post_type'] ?? '' );
-		
 		if ( $post_type && self::has_phases( $post_type ) ) {
 
+			// start with no options
 			$options = array();
-			
+			// create options for each phase
 			$terms = self::get_phase_phases();
-
 			foreach ( $terms as $term ) {
 				$is_selected = $_GET['phases'] ?? '' === $term->slug ? ' selected' : '';
 				$options[] = sprintf(
@@ -483,7 +524,7 @@ Class Phases {
 					$term->name
 				);
 			}
-
+			// if we have phase options then output a select box so the user can choose one
 			if ( $options ) {
 				printf(
 					'<label class="screen-reader-text" for="phases-filter">%s</label><select name="phases"><option value>%s</option>%s</select>',
@@ -494,14 +535,13 @@ Class Phases {
 			}
 
 		}
-		
 
 	}
 
 	/**
-	 * Adds metaboxes to block editor settings sidebar.
+	 * Adds metaboxes to block editor settings sidebar on post edit screen.
 	 *
-	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function phases_add_meta_box() {
 
@@ -584,14 +624,14 @@ Class Phases {
 	}
 
 	/**
-     * Saves phase data when a post is saved
+     * Saves phase data when a post is saved.
      *
-     * @param int $post_id ID of the post
-     *
-     * @return void
+     * @param int $post_id Post ID.
+     * @since 1.0.0
      */
     public static function phases_save( $post_id = 0 ) {
 
+		// check nonce to determine what action we're safely performing
 		$post_nonce = wp_verify_nonce( $_POST['phases_meta_box_nonce'] ?? '', 'phases_meta_box' ); // post save
 		$quick_nonce = wp_verify_nonce( $_POST[ '_inline_edit' ] ?? '', 'inlineeditnonce' ); // quick save
 		$bulk_nonce = wp_verify_nonce( $_GET[ '_wpnonce' ] ?? '', 'bulk-posts' ); // bulk quick save
@@ -612,10 +652,10 @@ Class Phases {
             return;
         }
 
-        // get data and sanitize it
+        // get data and sanitize it (it's within $_GET for bulk or $_POST for quick edit)
 		$new_phase_id = ( $bulk_nonce ? $_GET['phases_phase_id'] ?? null : $_POST['phases_phase_id'] ?? null );
 
-        // swap out the post's phase term (unless we're to leave things unchanged)
+        // change the post's phase (unless we're to leave things unchanged)
 		if ( null !== $new_phase_id ) {
 			wp_set_object_terms( $post_id, array( (int) $new_phase_id ), 'phases', false );
 		}
@@ -630,8 +670,8 @@ Class Phases {
 	/**
 	 * Enqueues scripts and styles.
 	 *
-	 * @param string $hook_suffix
-	 * @return void
+	 * @param string $hook_suffix The current admin page.
+	 * @since 1.0.0
 	 */
 	public static function enqueue_scripts( $hook_suffix ) {
 
@@ -642,10 +682,7 @@ Class Phases {
 		if ( 'post' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
 			wp_enqueue_style( 'phases-block-editor-styles', PHASES_PLUGIN_URI . 'assets/phases-block-editor.css', null, PHASES_VERSION, 'screen' );
 			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array( 'jquery' ), PHASES_VERSION, true );
-		}
-
-		// load scripts for page lists
-		
+		}		
 		
 		// load scripts for plugin settings screen
 		if ( 'settings_page_phases_admin' === $hook_suffix ) {
@@ -653,12 +690,10 @@ Class Phases {
 			wp_enqueue_script( 'phases-settings-scripts', PHASES_PLUGIN_URI . 'assets/phases-settings.js', array( 'jquery', 'wp-color-picker' ), PHASES_VERSION, true );
 		}
 
-		// load scripts for post type lists
+		// load scripts for post type lists screen
 		if ( 'edit' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
-			// load the stylesheet
 			wp_enqueue_style( 'phases-post-list-styles', PHASES_PLUGIN_URI . 'assets/phases-post-list.css', null, PHASES_VERSION, 'screen' );
-			
-			// set the colors for each phase
+			// set visual colors for each phase
 			$terms = self::get_phase_phases();
 			$styles = array();
 			foreach( $terms as $term ) {
@@ -678,15 +713,37 @@ Class Phases {
 	}
 
 	/**
-     * Custom quick edit box.
+	 * Hide tag-like phases selector from quick/bulk edit since we use our own.
+	 *
+	 * @param bool $show Whether to show/hide this taxonomy.
+	 * @param string $taxonomy_name Name of taxonomy being shown.
+	 * @param obj $view Current view object.
+	 * @since 1.0.0
+	 */
+	public static function quick_and_bulk_mods( $show, $taxonomy_name, $view ) {
+
+		// hide the phases default editor
+		if ( 'phases' === $taxonomy_name ) {
+			return false;
+		}
+		return $show;
+	
+	}
+
+	/**
+     * Create custom quick/bulk edit box.
      *
-     * @param string $column_name Custom column name
-     *
+     * @param string $column_name Custom column name.
+     * @since 1.0.0
      */
     public static function quick_and_bulk_field( $column_name ) {
+
+		// bail if this isn't the phases column
         if ($column_name !== 'phases') {
             return;
         }
+
+		// get all the phase options and create a <select> box to choose them
 		$phases = self::get_phase_phases();
 		if ( ! empty( $phases ) ) {
 			$options = sprintf(
@@ -713,17 +770,5 @@ Class Phases {
 			);
 		}
     }
-
-	
-	public static function quick_and_bulk_mods( $show, $taxonomy_name, $view ) {
-
-		if ( 'phases' === $taxonomy_name ) {
-			return false;
-		}
-	
-		return $show;
-	
-	}
-
 
 }
