@@ -11,3 +11,6 @@
 .phases-note {
 	white-space: pre-line;
 }
+#wpbody-content .inline-edit-row-page .phases-quickedit {
+	margin-top: 0;
+}
