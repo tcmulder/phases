@@ -301,19 +301,40 @@ Class Phases {
 							</span>
 							<button class="phases__remove button-secondary" aria-label="%s" title="%s" type="button">✕</button>
 						</div>',
-						$phase['id'],
-						$phase['id'],
-						$phase['id'],
-						$phase['name'],
-						$phase['id'],
-						$phase['color'],
+						esc_html( $phase['id'] ),
+						esc_html( $phase['id'] ),
+						esc_html( $phase['id'] ),
+						esc_html( $phase['name'] ),
+						esc_html( $phase['id'] ),
+						esc_html( $phase['color'] ),
 						esc_html__( 'Remove', 'phases' ),
 						esc_html__( 'Remove', 'phases' )
 					);
 				}
+				$html = implode( "\n", $phases_html );
 				printf(
 					'<fieldset>%s <button class="phases__add button-secondary" type="button">%s</button></fieldset>',
-					implode( "\n", $phases_html ),
+					wp_kses( $html, array(
+						'div' => array(
+							'class' => array(),
+						),
+						'input' => array(
+							'class' => array(),
+							'name' => array(),
+							'value' => array(),
+							'type' => array(),
+							'data-default-color' => array(),
+						),
+						'span' => array(
+							'class' => array(),
+						),
+						'button' => array(
+							'class' => array(),
+							'aria-label' => array(),
+							'title' => array(),
+							'type' => array(),
+						),
+					) ),
 					esc_html__( 'Add a Phase', 'phases' )
 				);
 			},
@@ -353,7 +374,22 @@ Class Phases {
 						$type_obj->labels->name
 					);
 				}
-				printf( '<fieldset>%s<fieldset>', implode( "\n", $fields ) );
+				$html = implode( "\n", $fields );
+				printf( '<fieldset>%s<fieldset>',
+					wp_kses ( $html, array(
+						'p' => array(),
+						'label' => array(
+							'for' => array(),
+						),
+						'input' => array(
+							'type' => array(),
+							'id' => array(),
+							'name' => array(),
+							'value' => array(),
+							'checked' => array(),
+						),
+					) )
+				);
 			},
 			'pluginPage',
 			'phases_admin_post_type_section'
@@ -479,10 +515,10 @@ Class Phases {
 				printf(
 					'<a href="%sedit.php?phases=%s&post_type=%s" class="phases-value--%s">%s</a>',
 					esc_html( get_admin_url() ),
-					$phase['slug'],
+					esc_html( $phase['slug'] ),
 					get_post_type( $id ),
-					$phase['slug'],
-					$phase['name']
+					esc_html( $phase['slug'] ),
+					esc_html( $phase['name'] )
 				);
 			}
 			// show this post's notes (if notes within columns is on)
@@ -532,11 +568,17 @@ Class Phases {
 			}
 			// if we have phase options then output a select box so the user can choose one
 			if ( $options ) {
+				$html = implode( "\n", $options );
 				printf(
 					'<label class="screen-reader-text" for="phases-filter">%s</label><select name="phases"><option value>%s</option>%s</select>',
 					esc_html__( 'Filter by Phase Phase', 'phases' ),
 					esc_html__( 'All Phases', 'phases' ),
-					implode( "\n", $options ),
+					wp_kses( $html, array(
+						'option' => array(
+							'selected' => array(),
+							'value' => array(),
+						)
+					) ),
 				);
 			}
 
@@ -595,7 +637,7 @@ Class Phases {
 			// create the meta box
 			add_meta_box(
 				'phases_options',
-				$label,
+				wp_kses( $label, array( 'span' => array( 'class' => array(), 'style' => array() ) ) ),
 				function() use ( $options ) {
 					$settings = get_option( 'phases_settings' );
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
@@ -603,9 +645,14 @@ Class Phases {
 						'<p>%s:</p>',
 						esc_html__( 'Set this post as', 'phases' )
 					);
+					$html = implode( "\n", $options );
 					printf(
 						'<select class="phases-phase-select" name="phases_phase_id">%s</select>',
-						implode( "\n", $options )
+						wp_kses( $html, array('option' => array(
+							'value' => array(),
+							'data-color' => array(),
+							'selected' => array(),
+						) ) )
 					);
 					if ( $settings['notes'] ?? 'off' === 'on' ) {
 						$meta = get_post_meta( get_the_id(), 'phases_note', true );
@@ -638,9 +685,9 @@ Class Phases {
     public static function phases_save( $post_id = 0 ) {
 
 		// check nonce to determine what action we're safely performing
-		$post_nonce = wp_verify_nonce( $_POST['phases_meta_box_nonce'] ?? '', 'phases_meta_box' ); // post save
-		$quick_nonce = wp_verify_nonce( $_POST[ '_inline_edit' ] ?? '', 'inlineeditnonce' ); // quick save
-		$bulk_nonce = wp_verify_nonce( $_GET[ '_wpnonce' ] ?? '', 'bulk-posts' ); // bulk quick save
+		$post_nonce = wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'phases_meta_box_nonce' ] ?? '' ) ), 'phases_meta_box' ); // post save
+		$quick_nonce = wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ '_inline_edit' ] ?? '' ) ), 'inlineeditnonce' ); // quick save
+		$bulk_nonce = wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET[ '_wpnonce' ] ?? '' ) ), 'bulk-posts' ); // bulk quick save
         
 		// bail if our nonce isn't right
         if ( ! $post_nonce && ! $quick_nonce && ! $bulk_nonce ) {
@@ -653,17 +700,20 @@ Class Phases {
         }
 
         // bail if this user can't edit this post tpe
-		$post_type = $bulk_nonce ? $_GET['post_type'] : $_POST['post_type'];
+		$post_type = $bulk_nonce ? sanitize_text_field( $_GET['post_type'] ) : sanitize_text_field( $_POST['post_type'] );
         if ( ! current_user_can( 'edit_' . $post_type, $post_id ) ) {
             return;
         }
 
         // get data and sanitize it (it's within $_GET for bulk or $_POST for quick edit)
-		$new_phase_id = ( $bulk_nonce ? $_GET['phases_phase_id'] ?? null : $_POST['phases_phase_id'] ?? null );
+		$new_phase_id_raw = ( $bulk_nonce ? sanitize_text_field( $_GET['phases_phase_id'] ?? 0 ) : sanitize_text_field( $_POST['phases_phase_id'] ?? 0 ) );
+		$new_phase_id = $new_phase_id_raw ? $new_phase_id_raw : 0;
 
         // change the post's phase (unless we're to leave things unchanged)
-		if ( null !== $new_phase_id ) {
+		if ( 0 !== $new_phase_id ) {
 			wp_set_object_terms( $post_id, array( (int) $new_phase_id ), 'phases', false );
+		} else {
+			wp_set_object_terms( $post_id, array(), 'phases', false );
 		}
 
 		// maybe update notes
@@ -712,7 +762,8 @@ Class Phases {
 				);
 			}
 			if ( ! empty( $styles ) ) {
-				printf( '<style id="phases-admin-styles">%s</style>', implode( "\n", $styles ) );
+				$css = implode( "\n", $styles );
+				printf( '<style id="phases-admin-styles">%s</style>', sanitize_text_field( $css ) );
 			}
 		}
 
