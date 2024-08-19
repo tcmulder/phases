@@ -1,0 +1,29 @@
+/**
+* Phases plugin block editor styling
+*/
+.phases-swatch {
+	overflow: hidden;
+	display: inline-block;
+	margin-left: -5px;
+	padding: 0 5px;
+	border-radius: 99px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.phases-phase-select {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+.phases-manage-link {
+	display: block;
+	padding-top: 10px;
+}
+.phases-notes span {
+	display: block;
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+.phases-notes textarea {
+	width: 100%;
+}
