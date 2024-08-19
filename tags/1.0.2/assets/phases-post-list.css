@@ -1,0 +1,16 @@
+/**
+* Phases plugin post list styling
+*/
+.striped tr:nth-child(odd):has([class^="phases-value"]) {
+	background-color: color-mix(
+		in srgb,
+		var(--phases-color) 98%,
+		#000
+	) !important;
+}
+.phases-note {
+	white-space: pre-line;
+}
+#wpbody-content .inline-edit-row-page .phases-quickedit {
+	margin-top: 0;
+}

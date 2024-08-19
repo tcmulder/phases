@@ -1,0 +1,27 @@
+/**
+* Phases plugin settings page styling
+*/
+
+.phases h2 {
+	margin-top: 75px;
+}
+.phases__phase {
+	position: relative;
+	display: flex;
+	align-items: center;
+	column-gap: 5px;
+	margin-bottom: 5px;
+	margin-right: 5px;
+}
+.phases__color {
+	position: relative;
+}
+.phases__color .wp-picker-container .wp-color-result.button {
+	margin: 0;
+}
+.phases__color .wp-picker-container .wp-picker-holder {
+	position: absolute;
+	right: 0;
+	top: 100%;
+	z-index: 999;
+}
