@@ -3,7 +3,7 @@
 /**
  * Phases core class
  * 
- * @since 1.0.0
+ * @since 1.0.2
  */
 Class Phases {
 
@@ -50,7 +50,7 @@ Class Phases {
 	/**
 	 * Runs on activation to initialize the plugin settings.
 	 * 
-	 * @since 1.0.0
+	 * @since 1.0.2
 	 */
 	public static function phases_activation() {
 
@@ -113,7 +113,7 @@ Class Phases {
 	 *
 	 * @param obj $term A WP_Term object to parse.
 	 * @return array Array of phase data (or empty if no data).
-	 * @since 1.0.0
+	 * @since 1.0.2
 	 */
 	public static function get_phase_phase( $term ) {
 
