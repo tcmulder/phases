@@ -146,12 +146,11 @@ Class Phases {
 			$faux_meta = maybe_unserialize( $term->description );
 			$faux_meta = wp_parse_args( $faux_meta, array( 'color' => '#cccccc' ) );
 			// create our phase data
-			$phase = array( 
-				...$faux_meta,
+			$phase = array_merge( $faux_meta, array( 
 				'id'   => (int) $term->term_id,
 				'name' => sanitize_text_field( $term->name ),
 				'slug' => sanitize_title( $term->slug ),
-			); 
+			) );
 		}
 		// return the phase data
 		return $phase;
