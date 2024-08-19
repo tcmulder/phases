@@ -26,7 +26,7 @@ Class Phases {
 	public static function init_hooks() {
 		
 		add_action( 'init', array( 'Phases', 'create_phases_taxonomy' ) );
-		add_action( 'init', array( 'Phases', 'create_default_phases_terms' ) );
+		add_action( 'admin_init', array( 'Phases', 'create_phases_terms' ) );
 		add_action( 'admin_menu', array( 'Phases', 'add_admin_menu' ) );
 		add_action( 'admin_init', array( 'Phases', 'phases_settings_init' ) );
 		add_action( 'restrict_manage_posts', array( 'Phases', 'posts_filter_dropdown' ) );
@@ -58,29 +58,8 @@ Class Phases {
 		if ( get_option( 'phases_settings' ) ) {
 			return;
 		}
-		// show ui on page post type by default and identify this as being the initial activation (used by term pre-population later)
-		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ), 'activation' => true ) );
-
-	}
-
-	/**
-	 * Creates initial terms if plugin is being initialized for the first time.
-	 * 
-	 * @since 1.0.0
-	 */
-	public static function create_default_phases_terms() {
-		
-		// if this is the initial activation
-		$settings = get_option( 'phases_settings' );
-		if ( $settings['activation'] ?? false ) {
-			// set up to do / doing / done default terms
-			wp_insert_term( 'Done', 'phases', array( 'name' => 'Done', 'description' => serialize( array( 'color' => '#d9ead3' ) ) ) );
-			wp_insert_term( 'Doing', 'phases', array( 'name' => 'Doing', 'description' => serialize( array( 'color' => '#fff3cc' ) ) ) );
-			wp_insert_term( 'To Do', 'phases', array( 'name' => 'To Do', 'description' => serialize( array( 'color' => '#f5cbcc' ) ) ) );
-			// identify as no longer being initial activation
-			unset( $settings['activation'] );
-			update_option( 'phases_settings', $settings );
-		}
+		// show ui on page post type by default
+		update_option( 'phases_settings', array( 'post_types' => array( 'page' => 'page' ) ) );
 
 	}
 
@@ -239,6 +218,23 @@ Class Phases {
 	}
 
 	/**
+	 * Creates default terms for phases taxonomy if there are none
+	 * 
+	 * @since 1.0.2
+	 */
+	public static function create_phases_terms() {
+
+		// if we have no phases then create defaults (usually only for initial activation)
+		$have_phases = wp_count_terms( 'phases', array( 'hide_empty'=> false ) );
+		if ( ! $have_phases ) {
+			wp_insert_term( 'Done', 'phases', array( 'name' => 'Done', 'description' => serialize( array( 'color' => '#d9ead3' ) ) ) );
+			wp_insert_term( 'Doing', 'phases', array( 'name' => 'Doing', 'description' => serialize( array( 'color' => '#fff3cc' ) ) ) );
+			wp_insert_term( 'To Do', 'phases', array( 'name' => 'To Do', 'description' => serialize( array( 'color' => '#f5cbcc' ) ) ) );
+		}
+
+	}
+
+	/**
 	 * Creates a settings page within the Settings menu.
 	 *
 	 * @since 1.0.0
@@ -252,7 +248,6 @@ Class Phases {
 			'manage_options',
 			'phases_admin',
 			function() {
-				// ob_start();
 				echo '<form class="phases" action="options.php" method="post">';
 				printf( '<h1>%s</h1>', esc_html__( 'Phase Options', 'phases' ) );
 				settings_fields( 'pluginPage' );
