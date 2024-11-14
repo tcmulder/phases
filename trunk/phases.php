@@ -3,7 +3,7 @@
  * Plugin Name:   Post Edit Phases
  * Plugin URI:    https://github.com/tcmulder/phases
  * Description:   Keep track of the status of your posts as you work through each phase of creating them.
- * Version:       1.0.1
+ * Version:       1.0.2
  * Author:        Tomas Mulder
  * Author URI:    https://www.thinkaquamarine.com
  * Text Domain:   phases
