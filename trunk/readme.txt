@@ -3,7 +3,7 @@
 Contributors: thinkaquamarine
 Tags: phases, process, organize
 Requires at least: 6.5.4
-Tested up to: 6.7
+Tested up to: 6.8.1
 Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -40,10 +40,11 @@ Inspired by [Mark Posts](https://wordpress.org/plugins/mark-posts/).
 
 * Add settings link to plugins page.
 * Removed unnecessary styling of Screen Options label.
+* Updated WordPress version compatibility.
 
 = 1.0.3 =
 
-* Update WordPress version compatibility.
+* Updated WordPress version compatibility.
 
 = 1.0.2 =
 
@@ -53,7 +54,7 @@ Inspired by [Mark Posts](https://wordpress.org/plugins/mark-posts/).
 = 1.0.1 =
 
 * Added plugin media assets.
-* Update WordPress version compatibility.
+* Updated WordPress version compatibility.
 
 = 1.0.0 =
 
