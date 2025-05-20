@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Phases core class
  * 
@@ -37,6 +36,7 @@ Class Phases {
 		add_action( 'bulk_edit_custom_box', array( 'Phases', 'quick_and_bulk_field' ) );
         add_action( 'quick_edit_custom_box', array( 'Phases', 'quick_and_bulk_field' ) );
 		add_filter( 'quick_edit_show_taxonomy', array( 'Phases', 'quick_and_bulk_mods' ), 10, 3 );
+		add_filter( 'plugin_action_links_' . plugin_basename( PHASES_PLUGIN_FILE ), array( 'Phases', 'add_settings_action_link' ) );
 
 		// add columns only to post types that have phases activated
 		$phase_post_types = self::get_phases_post_types();
@@ -45,6 +45,19 @@ Class Phases {
 			add_filter( 'manage_' . $type . '_posts_custom_column', array( 'Phases', 'column_value' ), 10, 3 );
 		}
  
+	}
+
+	/**
+	 * Adds a Settings link to the plugin's action links on the plugins page.
+	 *
+	 * @param array $links Array of plugin action links.
+	 * @return array Modified array of plugin action links.
+	 * @since 1.0.4
+	 */
+	public static function add_settings_action_link( $links ) {
+		$settings_link = '<a href="' . admin_url( 'options-general.php?page=phases_admin' ) . '">' . __( 'Settings', 'phases' ) . '</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
 	}
 
 	/**
