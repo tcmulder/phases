@@ -608,7 +608,7 @@ Class Phases {
 			
 			// set the label
 			$label = sprintf(
-				'<span class="phases-swatch" style="background-color:%s;">%s: %s</span>',
+				'<span class="phases-swatch" style="--phases-plugin-swatch-color:%s;">%s: %s</span>',
 				empty( $post_phase ) ? 'transparent' : $post_phase['color'],
 				esc_html__( 'Phase', 'phases' ),
 				empty( $post_phase ) ? '' : $post_phase['name']

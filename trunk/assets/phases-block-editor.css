@@ -1,29 +1,30 @@
 /**
 * Phases plugin block editor styling
 */
-.phases-swatch {
+:where(#phases_options) .phases-swatch {
 	overflow: hidden;
 	display: inline-block;
 	margin-left: -5px;
 	padding: 0 5px;
+	background-color: var(--phases-plugin-swatch-color);
 	border-radius: 99px;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
-.phases-phase-select {
+:where(#phases_options) .phases-phase-select {
 	display: block;
 	width: 100%;
 	box-sizing: border-box;
 }
-.phases-manage-link {
+:where(#phases_options) .phases-manage-link {
 	display: block;
 	padding-top: 10px;
 }
-.phases-notes span {
+:where(#phases_options) .phases-notes span {
 	display: block;
 	margin-top: 20px;
 	margin-bottom: 10px;
 }
-.phases-notes textarea {
+:where(#phases_options) .phases-notes textarea {
 	width: 100%;
 }

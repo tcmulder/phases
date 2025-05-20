@@ -39,6 +39,7 @@ Inspired by [Mark Posts](https://wordpress.org/plugins/mark-posts/).
 = 1.0.4 =
 
 * Add settings link to plugins page.
+* Removed unnecessary styling of Screen Options label.
 
 = 1.0.3 =
 
