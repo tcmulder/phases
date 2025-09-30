@@ -636,9 +636,9 @@ Class Phases {
 				}
 			}
 			array_unshift( $options, sprintf(
-				'<option value="0" data-color=""%s>%s</option>',
+				'<option value="-1" data-color=""%s>%s</option>',
 				$has_selected ? '' : ' selected',
-				esc_html__( 'None', 'phases' )
+				esc_html__( '× Remove All', 'phases' )
 			) );
 
 			// create the meta box
@@ -713,14 +713,18 @@ Class Phases {
         }
 
         // get data and sanitize it (it's within $_GET for bulk or $_POST for quick edit)
-		$new_phase_id_raw = ( $bulk_nonce ? sanitize_text_field( $_GET['phases_phase_id'] ?? 0 ) : sanitize_text_field( $_POST['phases_phase_id'] ?? 0 ) );
-		$new_phase_id = $new_phase_id_raw ? $new_phase_id_raw : 0;
+		$new_phase_id_raw = ( $bulk_nonce ? sanitize_text_field( $_GET['phases_phase_id'] ?? '' ) : sanitize_text_field( $_POST['phases_phase_id'] ?? '' ) );
 
-        // change the post's phase (unless we're to leave things unchanged)
-		if ( 0 !== $new_phase_id ) {
-			wp_set_object_terms( $post_id, array( (int) $new_phase_id ), 'phases', false );
-		} else {
+        // change the post's phase based on the selection
+		if ( $new_phase_id_raw === '' ) {
+			// Empty value means "unchanged" so do nothing
+			return;
+		} elseif ( $new_phase_id_raw === '-1' ) {
+			// "-1" means "remove all phases"
 			wp_set_object_terms( $post_id, array(), 'phases', false );
+		} else {
+			// Set the selected phase
+			wp_set_object_terms( $post_id, array( (int) $new_phase_id_raw ), 'phases', false );
 		}
 
 		// maybe update notes
@@ -811,13 +815,16 @@ Class Phases {
 		$phases = self::get_phase_phases();
 		if ( ! empty( $phases ) ) {
 			$options = sprintf(
-				'<option disabled selected>%s</option><option value="">%s</option>',
-				esc_html__( '(Unchanged)', 'phases' ),
-				esc_html__( 'None', 'phases' )
+				'<option value="" selected>%s</option>',
+				esc_html__( 'Unchanged', 'phases' )
 			);
 			foreach ( $phases as $phase ) {
 				$options .= sprintf( '<option value="%s">%s</option>', $phase->term_id, $phase->name );
 			}
+			$options .= sprintf(
+				'<option value="-1">%s</option>',
+				esc_html__( '× Remove All', 'phases' )
+			);
 			printf(
 				'<fieldset class="inline-edit-col-right phases-quickedit">
 					<div class="inline-edit-col">
