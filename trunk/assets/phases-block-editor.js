@@ -1,22 +1,29 @@
 /**
  * Phases plugin block editor scripts
  */
-jQuery( document ).ready( function ( $ ) {
+document.addEventListener( 'DOMContentLoaded', function () {
+	const wrap = document.getElementById( 'phases_options' );
+	if ( ! wrap ) {
+		return;
+	}
 
-    // update phase status whenever the user chooses a new one
-    const $wrap = $( '#phases_options' );
-    if ( $wrap.length ) {
-        const $select = $wrap.find( '.phases-phase-select' );
-        const $swatch = $wrap.find( '.phases-swatch' );
-        const label = $swatch.text().split( ':' )[0];
-        $select.on( 'change', function() {
-            const $selected = $select.find( 'option:selected' );
-            if ( $selected.data( 'color' ) ) {
-                $swatch.text( label  + ': ' + $selected.text() ).css( 'background', $selected.data( 'color' ) );
-            } else {
-                $swatch.text( label ).css( 'background', 'transparent' );
-            }
-        });
-    }
+	const select = wrap.querySelector( '.phases-phase-select' );
+	const swatch = wrap.querySelector( '.phases-swatch' );
+	if ( ! select || ! swatch ) {
+		return;
+	}
 
-});
+	const label = swatch.textContent.split( ':' )[0];
+
+	select.addEventListener( 'change', function () {
+		const selected = select.options[ select.selectedIndex ];
+		const color = selected.dataset.color;
+		if ( color ) {
+			swatch.textContent = label + ': ' + selected.text;
+			swatch.style.background = color;
+		} else {
+			swatch.textContent = label;
+			swatch.style.background = 'transparent';
+		}
+	} );
+} );

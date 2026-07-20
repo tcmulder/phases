@@ -748,7 +748,7 @@ Class Phases {
 		// load scripts for block editor screen
 		if ( 'post' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
 			wp_enqueue_style( 'phases-block-editor-styles', PHASES_PLUGIN_URI . 'assets/phases-block-editor.css', null, PHASES_VERSION, 'screen' );
-			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array( 'jquery' ), PHASES_VERSION, true );
+			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array(), PHASES_VERSION, true );
 		}		
 		
 		// load scripts for plugin settings screen
