@@ -825,7 +825,7 @@ Class Phases {
 			}
 			$options .= sprintf(
 				'<option value="-1">%s</option>',
-				esc_html__( '× Remove All', 'phases' )
+				esc_html__( 'None', 'phases' )
 			);
 			printf(
 				'<fieldset class="inline-edit-col-right phases-quickedit">
