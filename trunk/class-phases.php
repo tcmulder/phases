@@ -218,7 +218,9 @@ Class Phases {
 					'choose_from_most_used'      => __( 'Choose from the most used items', 'phases' ),
 					'not_found'                  => __( 'Not Found', 'phases' ),
 				),
-				'public'            => $debug,
+				'public'       => $debug,
+				'show_in_rest' => true,
+				'meta_box_cb'  => false,
 				'capabilities' => array(
 					'manage__terms' => 'edit_posts',
 					'edit_terms'    => 'manage_categories',
@@ -748,7 +750,7 @@ Class Phases {
 		// load scripts for block editor screen
 		if ( 'post' === $screen->base && in_array( $screen->post_type, $post_types ) ) {
 			wp_enqueue_style( 'phases-block-editor-styles', PHASES_PLUGIN_URI . 'assets/phases-block-editor.css', null, PHASES_VERSION, 'screen' );
-			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array(), PHASES_VERSION, true );
+			wp_enqueue_script( 'phases-block-editor-scripts', PHASES_PLUGIN_URI . 'assets/phases-block-editor.js', array( 'wp-data', 'wp-editor' ), PHASES_VERSION, true );
 		}		
 		
 		// load scripts for plugin settings screen

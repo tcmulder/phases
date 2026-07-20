@@ -39,6 +39,7 @@ Inspired by [Mark Posts](https://wordpress.org/plugins/mark-posts/).
 = 1.2.0 =
 
 * Switch from legacy jQuery to pure JavaScript.
+* Warn users if they attempt to leave a post without saving changes.
 
 = 1.0.6 =
 
