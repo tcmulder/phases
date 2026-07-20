@@ -16,6 +16,17 @@
 .phases__color {
 	position: relative;
 }
+.phases__color .wp-picker-container {
+	min-height: 40px;
+}
+.phases__color .wp-color-result,
+.phases__color .wp-color-result-text {
+	min-height: 38px;
+}
+.phases__color .wp-color-result-text {
+	display: flex;
+	align-items: center;
+}
 .phases__color .wp-picker-container .wp-color-result.button {
 	margin: 0;
 }

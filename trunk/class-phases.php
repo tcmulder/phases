@@ -320,7 +320,7 @@ Class Phases {
 				}
 				$html = implode( "\n", $phases_html );
 				printf(
-					'<fieldset>%s <button class="phases__add button-secondary" type="button">%s</button></fieldset>',
+					'<fieldset>%s <button class="phases__add button-secondary" type="button">+ %s</button></fieldset>',
 					wp_kses( $html, array(
 						'div' => array(
 							'class' => array(),
