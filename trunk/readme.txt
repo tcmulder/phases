@@ -36,6 +36,10 @@ Inspired by [Mark Posts](https://wordpress.org/plugins/mark-posts/).
 
 == Changelog ==
 
+= 1.2.0 =
+
+* Switch from legacy jQuery to pure JavaScript.
+
 = 1.0.6 =
 
 * Updated WordPress version compatibility.
