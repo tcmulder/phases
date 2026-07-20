@@ -652,7 +652,7 @@ Class Phases {
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
 					printf(
 						'<p>%s:</p>',
-						esc_html__( 'This post\'s phase is:', 'phases' )
+						esc_html__( 'This post\'s phase is', 'phases' )
 					);
 					$html = implode( "\n", $options );
 					printf(
