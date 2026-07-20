@@ -3,8 +3,8 @@
 Contributors: thinkaquamarine
 Tags: phases, process, organize
 Requires at least: 6.5.4
-Tested up to: 6.9
-Stable tag: 1.0.6
+Tested up to: 7.0.2
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
