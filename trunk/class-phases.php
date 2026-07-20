@@ -638,7 +638,7 @@ Class Phases {
 			array_unshift( $options, sprintf(
 				'<option value="-1" data-color=""%s>%s</option>',
 				$has_selected ? '' : ' selected',
-				esc_html__( '× Remove All', 'phases' )
+				esc_html__( 'None', 'phases' )
 			) );
 
 			// create the meta box
@@ -650,7 +650,7 @@ Class Phases {
 					wp_nonce_field( 'phases_meta_box', 'phases_meta_box_nonce' );
 					printf(
 						'<p>%s:</p>',
-						esc_html__( 'Set this post as', 'phases' )
+						esc_html__( 'This post\'s phase is:', 'phases' )
 					);
 					$html = implode( "\n", $options );
 					printf(
